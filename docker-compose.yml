@@ -1,0 +1,16 @@
+services:
+  note2cms:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./content:/app/content
+      - ./static:/app/static
+      - ./themes:/app/themes
+      - ./taxonomy.db:/app/taxonomy.db
+    environment:
+      - API_TOKEN=${API_TOKEN:-dev-token-change-me}
+      - SITE_TITLE=${SITE_TITLE:-My Blog}
+      - SITE_URL=${SITE_URL:-http://localhost:8000}
+      - ACTIVE_THEME=${ACTIVE_THEME:-default}
+    restart: unless-stopped

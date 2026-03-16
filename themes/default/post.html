@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <meta name="twitter:card" content="summary">
+    <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --paper: #faf9f7;
+            --dim: #6b6560;
+            --accent: #c45d3e;
+            --rule: #e0dcd7;
+            --code-bg: #f0eeeb;
+            --max-width: 42rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #e8e4df;
+                --paper: #191816;
+                --dim: #9a9590;
+                --accent: #e07a5f;
+                --rule: #2e2c29;
+                --code-bg: #242220;
+            }
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.7;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* --- Header / Meta --- */
+        .post-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem 3rem;
+        }
+
+        .post-meta {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .post-meta .sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--dim);
+            display: inline-block;
+        }
+
+        .post-title {
+            font-family: 'Newsreader', Georgia, serif;
+            font-size: 2.8rem;
+            font-weight: 300;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: var(--ink);
+            margin-bottom: 1.5rem;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .post-tags a, .post-tags span {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 0.2rem 0.6rem;
+            border: 1px solid var(--accent);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .post-tags a:hover {
+            background: var(--accent);
+            color: var(--paper);
+        }
+
+        /* --- Content --- */
+        .post-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .post-content p {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .post-content h2 {
+            font-size: 1.6rem;
+            font-weight: 400;
+            margin: 3rem 0 1rem;
+            letter-spacing: -0.01em;
+        }
+
+        .post-content h3 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin: 2.5rem 0 0.8rem;
+        }
+
+        .post-content h4 {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 2rem 0 0.8rem;
+            color: var(--dim);
+        }
+
+        .post-content a {
+            color: var(--accent);
+            text-decoration: underline;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+            transition: color 0.2s ease;
+        }
+
+        .post-content a:hover {
+            color: var(--ink);
+        }
+
+        .post-content blockquote {
+            border-left: 2px solid var(--accent);
+            padding: 0.2rem 0 0.2rem 1.5rem;
+            margin: 2rem 0;
+            font-style: italic;
+            color: var(--dim);
+        }
+
+        .post-content blockquote p {
+            margin-bottom: 0.5rem;
+        }
+
+        .post-content ul, .post-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .post-content li {
+            margin-bottom: 0.4rem;
+            font-weight: 300;
+        }
+
+        .post-content code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            background: var(--code-bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+        }
+
+        .post-content pre {
+            background: var(--code-bg);
+            padding: 1.2rem 1.5rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 2rem 0;
+            border: 1px solid var(--rule);
+        }
+
+        .post-content pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.8rem;
+            line-height: 1.6;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            margin: 2rem 0;
+        }
+
+        .post-content hr {
+            border: none;
+            height: 1px;
+            background: var(--rule);
+            margin: 3rem auto;
+            max-width: 6rem;
+        }
+
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.9rem;
+        }
+
+        .post-content th, .post-content td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--rule);
+            text-align: left;
+        }
+
+        .post-content th {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--dim);
+            font-weight: 500;
+        }
+
+        /* --- Footer / Navigation --- */
+        .post-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 3rem 1.5rem 6rem;
+            border-top: 1px solid var(--rule);
+        }
+
+        .post-footer a {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: gap 0.2s ease;
+        }
+
+        .post-footer a:hover {
+            gap: 0.7rem;
+        }
+
+        .post-footer .arrow {
+            font-size: 1.1rem;
+            line-height: 1;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 640px) {
+            html { font-size: 16px; }
+
+            .post-header { padding: 4rem 1.2rem 2rem; }
+            .post-title { font-size: 2rem; }
+            .post-content { padding: 0 1.2rem 3rem; }
+            .post-footer { padding: 2rem 1.2rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+    <article>
+        <header class="post-header">
+            <div class="post-meta">
+                <time datetime="{{ date_iso }}">{{ date }}</time>
+                <span class="sep"></span>
+                <span>{{ reading_time }} min read</span>
+            </div>
+            <h1 class="post-title">{{ title }}</h1>
+            {% if tags %}
+            <div class="post-tags">
+                {% for tag in tags %}
+                <span>{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="post-content">
+            {{ content }}
+        </div>
+    </article>
+
+    <footer class="post-footer">
+        <a href="{{ site_url }}/posts/">
+            <span class="arrow">←</span> All posts
+        </a>
+    </footer>
+</body>
+</html>

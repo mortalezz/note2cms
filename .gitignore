@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.env
+taxonomy.db
+static/
+*.egg-info/
+dist/
+.venv/
+vite-renderer/.theme-cache/
+vite-renderer/node_modules/

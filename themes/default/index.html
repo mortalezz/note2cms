@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <meta name="description" content="{{ site_title }} — writing, published from notes.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #1a1a1a;
+            --paper: #faf9f7;
+            --dim: #6b6560;
+            --accent: #c45d3e;
+            --rule: #e0dcd7;
+            --max-width: 42rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #e8e4df;
+                --paper: #191816;
+                --dim: #9a9590;
+                --accent: #e07a5f;
+                --rule: #2e2c29;
+            }
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 18px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Newsreader', Georgia, serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .index-container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+        }
+
+        .index-header {
+            margin-bottom: 4rem;
+        }
+
+        .index-title {
+            font-size: 2.2rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .index-subtitle {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            color: var(--dim);
+            letter-spacing: 0.04em;
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+        }
+
+        .post-item {
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .post-item:first-child {
+            border-top: 1px solid var(--rule);
+        }
+
+        .post-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--accent);
+        }
+
+        .post-item-meta {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--dim);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .post-item-meta .sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--dim);
+            display: inline-block;
+        }
+
+        .post-item-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            line-height: 1.3;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .post-item-excerpt {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--dim);
+            line-height: 1.6;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-top: 0.8rem;
+        }
+
+        .post-item-tags span {
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--accent);
+            padding: 0.15rem 0.5rem;
+            border: 1px solid var(--rule);
+            border-radius: 2px;
+        }
+
+        /* --- Empty state --- */
+        .empty-state {
+            text-align: center;
+            padding: 6rem 0;
+            color: var(--dim);
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            background: var(--rule);
+            padding: 0.3rem 0.6rem;
+            border-radius: 3px;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 640px) {
+            html { font-size: 16px; }
+            .index-container { padding: 4rem 1.2rem; }
+            .post-item-title { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <main class="index-container">
+        <header class="index-header">
+            <h1 class="index-title">{{ site_title }}</h1>
+            <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+        </header>
+
+        {% if posts %}
+        <ul class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <a href="{{ post.permalink }}" class="post-item-link">
+                    <div class="post-item-meta">
+                        <time datetime="{{ post.date }}">{{ post.display_date }}</time>
+                        <span class="sep"></span>
+                        <span>{{ post.reading_time }} min read</span>
+                    </div>
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="post-item-tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <p>No posts yet.</p>
+            <p>Push some Markdown to get started.</p>
+            <code>curl -X POST /publish</code>
+        </div>
+        {% endif %}
+    </main>
+</body>
+</html>
