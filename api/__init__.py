@@ -290,29 +290,31 @@ async def _rebuild_index():
 async def _ensure_source_table():
     """Create the markdown source table in PostgreSQL."""
     if hasattr(db, '_pool'):  # PostgreSQL
-        async with db._pool.acquire() as conn:
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS markdown_source (
-                    slug TEXT PRIMARY KEY,
-                    content TEXT NOT NULL,
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                )
-            """)
+        async with db._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute("""
+                    CREATE TABLE IF NOT EXISTS markdown_source (
+                        slug TEXT PRIMARY KEY,
+                        content TEXT NOT NULL,
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                """)
 
 
 async def _store_source(slug: str, markdown: str):
     """Store raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
-        slug_escaped = slug.replace("'", "''")
-        content_escaped = markdown.replace("'", "''")
-        async with db._pool.acquire() as conn:
-            await conn.execute(f"""
-                INSERT INTO markdown_source (slug, content, updated_at)
-                VALUES ('{slug_escaped}', '{content_escaped}', NOW())
-                ON CONFLICT (slug) DO UPDATE SET
-                    content = EXCLUDED.content,
-                    updated_at = NOW()
-            """)
+        async with db._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute("""
+                    INSERT INTO markdown_source (slug, content, updated_at)
+                    VALUES (%s, %s, NOW())
+                    ON CONFLICT (slug) DO UPDATE SET
+                        content = EXCLUDED.content,
+                        updated_at = NOW()
+                """, (slug, markdown))
     else:
         CONTENT_DIR.mkdir(parents=True, exist_ok=True)
         (CONTENT_DIR / f"{slug}.md").write_text(markdown, encoding="utf-8")
@@ -321,12 +323,14 @@ async def _store_source(slug: str, markdown: str):
 async def _retrieve_source(slug: str) -> Optional[str]:
     """Retrieve raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
-        slug_escaped = slug.replace("'", "''")
-        async with db._pool.acquire() as conn:
-            row = await conn.fetchrow(
-                f"SELECT content FROM markdown_source WHERE slug = '{slug_escaped}'"
-            )
-            return row["content"] if row else None
+        async with db._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "SELECT content FROM markdown_source WHERE slug = %s", (slug,)
+                )
+                row = await cur.fetchone()
+                return row[0] if row else None
     else:
         md_path = CONTENT_DIR / f"{slug}.md"
         if md_path.exists():
@@ -337,11 +341,12 @@ async def _retrieve_source(slug: str) -> Optional[str]:
 async def _delete_source(slug: str):
     """Delete raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
-        slug_escaped = slug.replace("'", "''")
-        async with db._pool.acquire() as conn:
-            await conn.execute(
-                f"DELETE FROM markdown_source WHERE slug = '{slug_escaped}'"
-            )
+        async with db._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute(
+                    "DELETE FROM markdown_source WHERE slug = %s", (slug,)
+                )
     else:
         md_path = CONTENT_DIR / f"{slug}.md"
         if md_path.exists():
