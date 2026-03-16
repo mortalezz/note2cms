@@ -26,16 +26,24 @@ class PostgresTaxonomyDB:
         self.database_url = database_url
         self._pool = None
 
+    @staticmethod
+    async def _init_connection(conn):
+        """Disable statement cache reset for PgBouncer/pooler compatibility."""
+        conn._reset_query = ''
+
     async def initialize(self):
         """Create the connection pool and table if needed."""
         # Leapcell uses PgBouncer-style connection pooling.
-        # statement_cache_size=0 prevents DEALLOCATE ALL on connection reset.
+        # statement_cache_size=0 + _reset_query='' prevents
+        # DEALLOCATE ALL on connection release.
         self._pool = await asyncpg.create_pool(
             self.database_url,
             min_size=1,
             max_size=5,
             ssl="require" if "leap" in self.database_url else "prefer",
             statement_cache_size=0,
+            command_timeout=30,
+            init=self._init_connection,
         )
 
         async with self._pool.acquire() as conn:
