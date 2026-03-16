@@ -291,7 +291,7 @@ async def _ensure_source_table():
     """Create the markdown source table in PostgreSQL."""
     if hasattr(db, '_pool'):  # PostgreSQL
         async with db._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute("""
                     CREATE TABLE IF NOT EXISTS markdown_source (
@@ -306,7 +306,7 @@ async def _store_source(slug: str, markdown: str):
     """Store raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute("""
                     INSERT INTO markdown_source (slug, content, updated_at)
@@ -324,7 +324,7 @@ async def _retrieve_source(slug: str) -> Optional[str]:
     """Retrieve raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute(
                     "SELECT content FROM markdown_source WHERE slug = %s", (slug,)
@@ -342,7 +342,7 @@ async def _delete_source(slug: str):
     """Delete raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute(
                     "DELETE FROM markdown_source WHERE slug = %s", (slug,)

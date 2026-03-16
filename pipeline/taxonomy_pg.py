@@ -36,7 +36,7 @@ class PostgresTaxonomyDB:
         await self._pool.open()
 
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute("""
                     CREATE TABLE IF NOT EXISTS posts (
@@ -59,7 +59,7 @@ class PostgresTaxonomyDB:
         tags_json = json.dumps(post.tags)
 
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute("""
                     INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
@@ -77,14 +77,14 @@ class PostgresTaxonomyDB:
     async def delete_post(self, slug: str) -> None:
         """Remove a post from the taxonomy."""
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor() as cur:
                 await cur.execute("DELETE FROM posts WHERE slug = %s", (slug,))
 
     async def get_post(self, slug: str) -> Optional[dict]:
         """Get a single post's metadata."""
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor(row_factory=dict_row) as cur:
                 await cur.execute("SELECT * FROM posts WHERE slug = %s", (slug,))
                 row = await cur.fetchone()
@@ -95,7 +95,7 @@ class PostgresTaxonomyDB:
     async def list_posts(self) -> list[dict]:
         """List all posts, newest first."""
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor(row_factory=dict_row) as cur:
                 await cur.execute("SELECT * FROM posts ORDER BY date DESC")
                 rows = await cur.fetchall()
@@ -104,7 +104,7 @@ class PostgresTaxonomyDB:
     async def list_by_tag(self, tag: str) -> list[dict]:
         """List posts with a specific tag."""
         async with self._pool.connection() as conn:
-            conn.autocommit = True
+            await conn.set_autocommit(True)
             async with conn.cursor(row_factory=dict_row) as cur:
                 await cur.execute(
                     "SELECT * FROM posts WHERE tags ? %s ORDER BY date DESC",
