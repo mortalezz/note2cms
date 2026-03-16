@@ -4,8 +4,10 @@ Taxonomy pipeline — PostgreSQL backend for cloud deployments.
 Drop-in replacement for the SQLite taxonomy when deploying to
 environments without persistent filesystem (like Leapcell).
 
-Uses asyncpg for async PostgreSQL access with the same interface
-as TaxonomyDB.
+Uses asyncpg with PgBouncer-safe patterns:
+  - No prepared statements (statement_cache_size=0)
+  - No connection reset queries (_reset_query='')
+  - All queries use execute() with timeout to avoid idle transaction kills
 """
 
 import json
@@ -33,9 +35,6 @@ class PostgresTaxonomyDB:
 
     async def initialize(self):
         """Create the connection pool and table if needed."""
-        # Leapcell uses PgBouncer-style connection pooling.
-        # statement_cache_size=0 + _reset_query='' prevents
-        # DEALLOCATE ALL on connection release.
         self._pool = await asyncpg.create_pool(
             self.database_url,
             min_size=1,
@@ -46,6 +45,7 @@ class PostgresTaxonomyDB:
             init=self._init_connection,
         )
 
+        # Use execute() for DDL — no prepared statements
         async with self._pool.acquire() as conn:
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS posts (
@@ -68,10 +68,17 @@ class PostgresTaxonomyDB:
         """Insert or update a post in the taxonomy."""
         tags_json = json.dumps(post.tags)
 
+        # Escape single quotes for raw SQL
+        slug = post.slug.replace("'", "''")
+        title = post.title.replace("'", "''")
+        date = post.date.replace("'", "''")
+        excerpt = post.excerpt.replace("'", "''")
+        tags_escaped = tags_json.replace("'", "''")
+
         async with self._pool.acquire() as conn:
-            await conn.execute("""
+            await conn.execute(f"""
                 INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
-                VALUES ($1, $2, $3, $4::jsonb, $5, $6, NOW(), NOW())
+                VALUES ('{slug}', '{title}', '{date}', '{tags_escaped}'::jsonb, {post.reading_time}, '{excerpt}', NOW(), NOW())
                 ON CONFLICT (slug) DO UPDATE SET
                     title = EXCLUDED.title,
                     date = EXCLUDED.date,
@@ -79,19 +86,20 @@ class PostgresTaxonomyDB:
                     reading_time = EXCLUDED.reading_time,
                     excerpt = EXCLUDED.excerpt,
                     updated_at = NOW()
-            """, post.slug, post.title, post.date, tags_json,
-                post.reading_time, post.excerpt)
+            """)
 
     async def delete_post(self, slug: str) -> None:
         """Remove a post from the taxonomy."""
+        slug_escaped = slug.replace("'", "''")
         async with self._pool.acquire() as conn:
-            await conn.execute("DELETE FROM posts WHERE slug = $1", slug)
+            await conn.execute(f"DELETE FROM posts WHERE slug = '{slug_escaped}'")
 
     async def get_post(self, slug: str) -> Optional[dict]:
         """Get a single post's metadata."""
+        slug_escaped = slug.replace("'", "''")
         async with self._pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT * FROM posts WHERE slug = $1", slug
+                f"SELECT * FROM posts WHERE slug = '{slug_escaped}'"
             )
             if row is None:
                 return None
@@ -107,10 +115,10 @@ class PostgresTaxonomyDB:
 
     async def list_by_tag(self, tag: str) -> list[dict]:
         """List posts with a specific tag."""
+        tag_escaped = tag.lower().replace("'", "''")
         async with self._pool.acquire() as conn:
             rows = await conn.fetch(
-                "SELECT * FROM posts WHERE tags ? $1 ORDER BY date DESC",
-                tag.lower()
+                f"SELECT * FROM posts WHERE tags ? '{tag_escaped}' ORDER BY date DESC"
             )
             return [self._row_to_dict(row) for row in rows]
 

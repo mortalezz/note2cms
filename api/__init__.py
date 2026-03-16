@@ -303,14 +303,16 @@ async def _ensure_source_table():
 async def _store_source(slug: str, markdown: str):
     """Store raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
+        slug_escaped = slug.replace("'", "''")
+        content_escaped = markdown.replace("'", "''")
         async with db._pool.acquire() as conn:
-            await conn.execute("""
+            await conn.execute(f"""
                 INSERT INTO markdown_source (slug, content, updated_at)
-                VALUES ($1, $2, NOW())
+                VALUES ('{slug_escaped}', '{content_escaped}', NOW())
                 ON CONFLICT (slug) DO UPDATE SET
                     content = EXCLUDED.content,
                     updated_at = NOW()
-            """, slug, markdown)
+            """)
     else:
         CONTENT_DIR.mkdir(parents=True, exist_ok=True)
         (CONTENT_DIR / f"{slug}.md").write_text(markdown, encoding="utf-8")
@@ -319,9 +321,10 @@ async def _store_source(slug: str, markdown: str):
 async def _retrieve_source(slug: str) -> Optional[str]:
     """Retrieve raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
+        slug_escaped = slug.replace("'", "''")
         async with db._pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT content FROM markdown_source WHERE slug = $1", slug
+                f"SELECT content FROM markdown_source WHERE slug = '{slug_escaped}'"
             )
             return row["content"] if row else None
     else:
@@ -334,9 +337,10 @@ async def _retrieve_source(slug: str) -> Optional[str]:
 async def _delete_source(slug: str):
     """Delete raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
+        slug_escaped = slug.replace("'", "''")
         async with db._pool.acquire() as conn:
             await conn.execute(
-                "DELETE FROM markdown_source WHERE slug = $1", slug
+                f"DELETE FROM markdown_source WHERE slug = '{slug_escaped}'"
             )
     else:
         md_path = CONTENT_DIR / f"{slug}.md"
