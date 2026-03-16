@@ -28,12 +28,14 @@ class PostgresTaxonomyDB:
 
     async def initialize(self):
         """Create the connection pool and table if needed."""
-        # asyncpg needs sslmode for most cloud Postgres
+        # Leapcell uses PgBouncer-style connection pooling.
+        # statement_cache_size=0 prevents DEALLOCATE ALL on connection reset.
         self._pool = await asyncpg.create_pool(
             self.database_url,
             min_size=1,
             max_size=5,
             ssl="require" if "leap" in self.database_url else "prefer",
+            statement_cache_size=0,
         )
 
         async with self._pool.acquire() as conn:
