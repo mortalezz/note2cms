@@ -98,7 +98,7 @@ class CloudBuildPipeline:
             formatted_posts.append({
                 **p,
                 "display_date": display_date,
-                "permalink": f"/posts/{p['slug']}/",
+                "permalink": f"{self.site_url}/posts/{p['slug']}/",
             })
 
         template = self.jinja_env.get_template("index.html")
