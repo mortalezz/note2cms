@@ -1,13 +1,8 @@
 """
 Taxonomy pipeline — PostgreSQL backend for cloud deployments.
 
-Drop-in replacement for the SQLite taxonomy when deploying to
-environments without persistent filesystem (like Leapcell).
-
-Uses asyncpg with PgBouncer-safe patterns:
-  - No prepared statements (statement_cache_size=0)
-  - No connection reset queries (_reset_query='')
-  - All queries use execute() with timeout to avoid idle transaction kills
+Uses psycopg (v3) async interface, which works natively with
+PgBouncer/connection poolers — no prepared statement issues.
 """
 
 import json
@@ -15,10 +10,12 @@ import os
 from typing import Optional
 
 try:
-    import asyncpg
-    HAS_ASYNCPG = True
+    import psycopg
+    from psycopg.rows import dict_row
+    from psycopg_pool import AsyncConnectionPool
+    HAS_PSYCOPG = True
 except ImportError:
-    HAS_ASYNCPG = False
+    HAS_PSYCOPG = False
 
 
 class PostgresTaxonomyDB:
@@ -28,99 +25,93 @@ class PostgresTaxonomyDB:
         self.database_url = database_url
         self._pool = None
 
-    @staticmethod
-    async def _init_connection(conn):
-        """Disable statement cache reset for PgBouncer/pooler compatibility."""
-        conn._reset_query = ''
-
     async def initialize(self):
         """Create the connection pool and table if needed."""
-        self._pool = await asyncpg.create_pool(
+        self._pool = AsyncConnectionPool(
             self.database_url,
             min_size=1,
             max_size=5,
-            ssl="require" if "leap" in self.database_url else "prefer",
-            statement_cache_size=0,
-            command_timeout=30,
-            init=self._init_connection,
+            open=False,
         )
+        await self._pool.open()
 
-        # Use execute() for DDL — no prepared statements
-        async with self._pool.acquire() as conn:
-            await conn.execute("""
-                CREATE TABLE IF NOT EXISTS posts (
-                    slug TEXT PRIMARY KEY,
-                    title TEXT NOT NULL,
-                    date TEXT NOT NULL,
-                    tags JSONB NOT NULL DEFAULT '[]',
-                    reading_time INTEGER NOT NULL DEFAULT 1,
-                    excerpt TEXT NOT NULL DEFAULT '',
-                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-                )
-            """)
-
-            await conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)
-            """)
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute("""
+                    CREATE TABLE IF NOT EXISTS posts (
+                        slug TEXT PRIMARY KEY,
+                        title TEXT NOT NULL,
+                        date TEXT NOT NULL,
+                        tags JSONB NOT NULL DEFAULT '[]',
+                        reading_time INTEGER NOT NULL DEFAULT 1,
+                        excerpt TEXT NOT NULL DEFAULT '',
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    )
+                """)
+                await cur.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)
+                """)
 
     async def upsert_post(self, post) -> None:
         """Insert or update a post in the taxonomy."""
         tags_json = json.dumps(post.tags)
 
-        # Escape single quotes for raw SQL
-        slug = post.slug.replace("'", "''")
-        title = post.title.replace("'", "''")
-        date = post.date.replace("'", "''")
-        excerpt = post.excerpt.replace("'", "''")
-        tags_escaped = tags_json.replace("'", "''")
-
-        async with self._pool.acquire() as conn:
-            await conn.execute(f"""
-                INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
-                VALUES ('{slug}', '{title}', '{date}', '{tags_escaped}'::jsonb, {post.reading_time}, '{excerpt}', NOW(), NOW())
-                ON CONFLICT (slug) DO UPDATE SET
-                    title = EXCLUDED.title,
-                    date = EXCLUDED.date,
-                    tags = EXCLUDED.tags,
-                    reading_time = EXCLUDED.reading_time,
-                    excerpt = EXCLUDED.excerpt,
-                    updated_at = NOW()
-            """)
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute("""
+                    INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s::jsonb, %s, %s, NOW(), NOW())
+                    ON CONFLICT (slug) DO UPDATE SET
+                        title = EXCLUDED.title,
+                        date = EXCLUDED.date,
+                        tags = EXCLUDED.tags,
+                        reading_time = EXCLUDED.reading_time,
+                        excerpt = EXCLUDED.excerpt,
+                        updated_at = NOW()
+                """, (post.slug, post.title, post.date, tags_json,
+                      post.reading_time, post.excerpt))
 
     async def delete_post(self, slug: str) -> None:
         """Remove a post from the taxonomy."""
-        slug_escaped = slug.replace("'", "''")
-        async with self._pool.acquire() as conn:
-            await conn.execute(f"DELETE FROM posts WHERE slug = '{slug_escaped}'")
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor() as cur:
+                await cur.execute("DELETE FROM posts WHERE slug = %s", (slug,))
 
     async def get_post(self, slug: str) -> Optional[dict]:
         """Get a single post's metadata."""
-        slug_escaped = slug.replace("'", "''")
-        async with self._pool.acquire() as conn:
-            row = await conn.fetchrow(
-                f"SELECT * FROM posts WHERE slug = '{slug_escaped}'"
-            )
-            if row is None:
-                return None
-            return self._row_to_dict(row)
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor(row_factory=dict_row) as cur:
+                await cur.execute("SELECT * FROM posts WHERE slug = %s", (slug,))
+                row = await cur.fetchone()
+                if row is None:
+                    return None
+                return self._row_to_dict(row)
 
     async def list_posts(self) -> list[dict]:
         """List all posts, newest first."""
-        async with self._pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT * FROM posts ORDER BY date DESC"
-            )
-            return [self._row_to_dict(row) for row in rows]
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor(row_factory=dict_row) as cur:
+                await cur.execute("SELECT * FROM posts ORDER BY date DESC")
+                rows = await cur.fetchall()
+                return [self._row_to_dict(row) for row in rows]
 
     async def list_by_tag(self, tag: str) -> list[dict]:
         """List posts with a specific tag."""
-        tag_escaped = tag.lower().replace("'", "''")
-        async with self._pool.acquire() as conn:
-            rows = await conn.fetch(
-                f"SELECT * FROM posts WHERE tags ? '{tag_escaped}' ORDER BY date DESC"
-            )
-            return [self._row_to_dict(row) for row in rows]
+        async with self._pool.connection() as conn:
+            conn.autocommit = True
+            async with conn.cursor(row_factory=dict_row) as cur:
+                await cur.execute(
+                    "SELECT * FROM posts WHERE tags ? %s ORDER BY date DESC",
+                    (tag.lower(),)
+                )
+                rows = await cur.fetchall()
+                return [self._row_to_dict(row) for row in rows]
 
     async def close(self):
         """Close the connection pool."""
@@ -131,7 +122,7 @@ class PostgresTaxonomyDB:
     def _row_to_dict(row) -> dict:
         """Convert a database row to a dictionary."""
         d = dict(row)
-        # asyncpg returns JSONB as native Python types
+        # psycopg returns JSONB as native Python types
         if isinstance(d.get("tags"), str):
             d["tags"] = json.loads(d["tags"])
         # Convert timestamps to ISO strings
@@ -149,10 +140,10 @@ def get_taxonomy_db():
     database_url = os.getenv("DATABASE_URL")
 
     if database_url and database_url.startswith("postgresql"):
-        if not HAS_ASYNCPG:
+        if not HAS_PSYCOPG:
             raise ImportError(
-                "asyncpg is required for PostgreSQL. "
-                "Add 'asyncpg' to requirements.txt."
+                "psycopg[binary] and psycopg_pool are required for PostgreSQL. "
+                "Add them to requirements.txt."
             )
         print(f"[taxonomy] Using PostgreSQL")
         return PostgresTaxonomyDB(database_url)
