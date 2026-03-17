@@ -219,12 +219,14 @@ async def get_source(slug: str, _token: str = Depends(verify_token)):
 @app.delete("/posts/{slug}")
 async def delete_post(slug: str, _token: str = Depends(verify_token)):
     """Remove a post entirely."""
-    source = await _retrieve_source(slug)
-    if source is None:
+    existing = await db.get_post(slug)
+    if existing is None:
         raise HTTPException(404, f"Post '{slug}' not found")
 
     # Remove source
-    await _delete_source(slug)
+    source = await _retrieve_source(slug)
+    if source is not None:
+        await _delete_source(slug)
 
     # Remove built output
     if deployer:
