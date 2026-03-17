@@ -52,22 +52,26 @@ class GitHubPagesDeployer:
         encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
 
         async with httpx.AsyncClient(timeout=30.0) as client:
-            # Check if file already exists (we need the SHA to update)
-            sha = await self._get_file_sha(client, url)
+            # Retry once on 409 to handle concurrent updates by refetching SHA.
+            for attempt in range(2):
+                sha = await self._get_file_sha(client, url)
 
-            payload = {
-                "message": message,
-                "content": encoded,
-                "branch": self.branch,
-            }
-            if sha:
-                payload["sha"] = sha
+                payload = {
+                    "message": message,
+                    "content": encoded,
+                    "branch": self.branch,
+                }
+                if sha:
+                    payload["sha"] = sha
 
-            resp = await client.put(url, json=payload, headers=self.headers)
+                resp = await client.put(url, json=payload, headers=self.headers)
 
-            if resp.status_code in (200, 201):
-                return True
-            else:
+                if resp.status_code in (200, 201):
+                    return True
+
+                if resp.status_code == 409 and attempt == 0:
+                    continue
+
                 print(f"[deploy] GitHub API error {resp.status_code}: {resp.text[:200]}")
                 return False
 
