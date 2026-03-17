@@ -90,7 +90,7 @@ class GitHubPagesDeployer:
                 "branch": self.branch,
             }
 
-            resp = await client.delete(url, json=payload, headers=self.headers)
+            resp = await client.request("DELETE", url, json=payload, headers=self.headers)
             return resp.status_code == 200
 
     async def deploy_post(self, slug: str, html: str) -> bool:
