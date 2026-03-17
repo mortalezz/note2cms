@@ -10,10 +10,10 @@ is the only format that respects both the reader and the passage of time.
 
 But I also believe that nothing should get too opinionated in my output.
 
-note2cms is KISS, decoupled to the details, with minimum needed functionality
+note2cms is KISS, decoupled to the details with minimum needed functionality
 only. Anything is easily pluggable somewhere into the pipelines. Pipelines
 themselves are easily created as needed. Switching the React SSR build step to
-something like Jinja2 templates is one fine thing — and it should be. Replacing
+something like Jinja2 templates is one and done thing — and it should be. Replacing
 SQLite with Postgres, or with a flat JSON file, or with nothing at all — also
 fine. The architecture has opinions about separation. It has no opinions about
 implementation.
