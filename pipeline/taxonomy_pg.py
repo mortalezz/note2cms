@@ -54,64 +54,111 @@ class PostgresTaxonomyDB:
                     CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)
                 """)
 
+    async def _retrying(self, fn, *, op_name: str):
+        """
+        Run a DB op and retry on transient OperationalError
+        (e.g. unexpected EOF from managed Postgres / pooler).
+        """
+        delays = [0.2, 0.8]  # seconds, total 2 retries
+        last_exc = None
+
+        for attempt in range(len(delays) + 1):
+            try:
+                return await fn()
+            except psycopg.OperationalError as e:
+                last_exc = e
+                if attempt >= len(delays):
+                    break
+                print(f"[db] OperationalError in {op_name}, retrying in {delays[attempt]}s")
+                # Mark pool as unhealthy and reopen before retry.
+                try:
+                    if self._pool:
+                        await self._pool.close()
+                finally:
+                    self._pool = AsyncConnectionPool(
+                        self.database_url,
+                        min_size=1,
+                        max_size=5,
+                        open=False,
+                    )
+                    await self._pool.open()
+                await asyncio.sleep(delays[attempt])
+
+        raise last_exc
+
     async def upsert_post(self, post) -> None:
         """Insert or update a post in the taxonomy."""
         tags_json = json.dumps(post.tags)
 
-        async with self._pool.connection() as conn:
-            await conn.set_autocommit(True)
-            async with conn.cursor() as cur:
-                await cur.execute("""
-                    INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s::jsonb, %s, %s, NOW(), NOW())
-                    ON CONFLICT (slug) DO UPDATE SET
-                        title = EXCLUDED.title,
-                        date = EXCLUDED.date,
-                        tags = EXCLUDED.tags,
-                        reading_time = EXCLUDED.reading_time,
-                        excerpt = EXCLUDED.excerpt,
-                        updated_at = NOW()
-                """, (post.slug, post.title, post.date, tags_json,
-                      post.reading_time, post.excerpt))
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor() as cur:
+                    await cur.execute("""
+                        INSERT INTO posts (slug, title, date, tags, reading_time, excerpt, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s::jsonb, %s, %s, NOW(), NOW())
+                        ON CONFLICT (slug) DO UPDATE SET
+                            title = EXCLUDED.title,
+                            date = EXCLUDED.date,
+                            tags = EXCLUDED.tags,
+                            reading_time = EXCLUDED.reading_time,
+                            excerpt = EXCLUDED.excerpt,
+                            updated_at = NOW()
+                    """, (post.slug, post.title, post.date, tags_json,
+                          post.reading_time, post.excerpt))
+
+        await self._retrying(_op, op_name="upsert_post")
 
     async def delete_post(self, slug: str) -> None:
         """Remove a post from the taxonomy."""
-        async with self._pool.connection() as conn:
-            await conn.set_autocommit(True)
-            async with conn.cursor() as cur:
-                await cur.execute("DELETE FROM posts WHERE slug = %s", (slug,))
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor() as cur:
+                    await cur.execute("DELETE FROM posts WHERE slug = %s", (slug,))
+
+        await self._retrying(_op, op_name="delete_post")
 
     async def get_post(self, slug: str) -> Optional[dict]:
         """Get a single post's metadata."""
-        async with self._pool.connection() as conn:
-            await conn.set_autocommit(True)
-            async with conn.cursor(row_factory=dict_row) as cur:
-                await cur.execute("SELECT * FROM posts WHERE slug = %s", (slug,))
-                row = await cur.fetchone()
-                if row is None:
-                    return None
-                return self._row_to_dict(row)
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor(row_factory=dict_row) as cur:
+                    await cur.execute("SELECT * FROM posts WHERE slug = %s", (slug,))
+                    row = await cur.fetchone()
+                    if row is None:
+                        return None
+                    return self._row_to_dict(row)
+
+        return await self._retrying(_op, op_name="get_post")
 
     async def list_posts(self) -> list[dict]:
         """List all posts, newest first."""
-        async with self._pool.connection() as conn:
-            await conn.set_autocommit(True)
-            async with conn.cursor(row_factory=dict_row) as cur:
-                await cur.execute("SELECT * FROM posts ORDER BY created_at DESC")
-                rows = await cur.fetchall()
-                return [self._row_to_dict(row) for row in rows]
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor(row_factory=dict_row) as cur:
+                    await cur.execute("SELECT * FROM posts ORDER BY created_at DESC")
+                    rows = await cur.fetchall()
+                    return [self._row_to_dict(row) for row in rows]
+
+        return await self._retrying(_op, op_name="list_posts")
 
     async def list_by_tag(self, tag: str) -> list[dict]:
         """List posts with a specific tag."""
-        async with self._pool.connection() as conn:
-            await conn.set_autocommit(True)
-            async with conn.cursor(row_factory=dict_row) as cur:
-                await cur.execute(
-                    "SELECT * FROM posts WHERE tags ? %s ORDER BY date DESC",
-                    (tag.lower(),)
-                )
-                rows = await cur.fetchall()
-                return [self._row_to_dict(row) for row in rows]
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor(row_factory=dict_row) as cur:
+                    await cur.execute(
+                        "SELECT * FROM posts WHERE tags ? %s ORDER BY date DESC",
+                        (tag.lower(),)
+                    )
+                    rows = await cur.fetchall()
+                    return [self._row_to_dict(row) for row in rows]
+
+        return await self._retrying(_op, op_name="list_by_tag")
 
     async def close(self):
         """Close the connection pool."""
