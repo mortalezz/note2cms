@@ -54,7 +54,7 @@
 <body>
     <main class="wrap">
         <h1>{{ site_title }}</h1>
-        <p class="subtitle">AnuPpuccin edition</p>
+        <p class="subtitle">Write where you think. Publish where they look. Own everything in between.</p>
         {% if posts %}
         <ul class="list">
             {% for post in posts %}
@@ -75,7 +75,11 @@
             {% endfor %}
         </ul>
         {% else %}
-        <p class="empty">No posts yet.</p>
+        <div class="empty">
+            <p>No posts yet.</p>
+            <p>Push some Markdown to get started.</p>
+            <code>curl -X POST /publish</code>
+        </div>
         {% endif %}
     </main>
 </body>
