@@ -163,14 +163,20 @@ class PostSummary(BaseModel):
 @app.post("/publish", response_model=PublishResponse)
 async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
     """Push Markdown, get a permalink."""
-    post = parse_markdown(req.markdown)
+    # PostgreSQL TEXT cannot contain NUL bytes; strip them if present.
+    raw_markdown = req.markdown
+    if "\x00" in raw_markdown:
+        print("[publish] Warning: stripped NUL bytes from markdown")
+        raw_markdown = raw_markdown.replace("\x00", "")
+
+    post = parse_markdown(raw_markdown)
 
     # Check if this is new or an update
     existing = await db.get_post(post.slug)
     is_new = existing is None
 
     # Store source Markdown
-    await _store_source(post.slug, req.markdown)
+    await _store_source(post.slug, raw_markdown)
 
     # Build HTML
     post_html = builder.render_post(post)
