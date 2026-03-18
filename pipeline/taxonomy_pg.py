@@ -97,7 +97,7 @@ class PostgresTaxonomyDB:
         async with self._pool.connection() as conn:
             await conn.set_autocommit(True)
             async with conn.cursor(row_factory=dict_row) as cur:
-                await cur.execute("SELECT * FROM posts ORDER BY date DESC")
+                await cur.execute("SELECT * FROM posts ORDER BY created_at DESC")
                 rows = await cur.fetchall()
                 return [self._row_to_dict(row) for row in rows]
 

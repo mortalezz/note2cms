@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <meta name="description" content="{{ site_title }} — Write where you think. Publish where they look.">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+        :root {
+            --black: #0a0a0a;
+            --white: #fafafa;
+            --red: #e63222;
+            --blue: #2244cc;
+            --yellow: #ffcc00;
+            --gray-100: #f2f2f2;
+            --gray-300: #cccccc;
+            --gray-500: #888888;
+            --grid-unit: 8px;
+            --col-width: min(800px, 90vw);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+        }
+
+        /* --- Geometric Decoration --- */
+        .geo-bar {
+            height: calc(var(--grid-unit) * 1);
+            background: var(--red);
+            width: 100%;
+        }
+
+        .geo-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: calc(var(--grid-unit) * 1);
+            height: 100vh;
+            background: var(--blue);
+            z-index: 100;
+        }
+
+        /* --- Layout --- */
+        .index-wrapper {
+            margin-left: calc(var(--grid-unit) * 1);
+            min-height: 100vh;
+        }
+
+        .index-header {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 10) calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 6);
+        }
+
+        .index-title {
+            font-size: clamp(2.8rem, 6vw, 4.5rem);
+            font-weight: 700;
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+            margin-bottom: calc(var(--grid-unit) * 2);
+        }
+
+        .index-title .accent {
+            color: var(--red);
+        }
+
+        .index-subtitle {
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            max-width: 50ch;
+        }
+
+        /* --- Divider --- */
+        .index-divider {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: 0 calc(var(--grid-unit) * 3);
+        }
+
+        .index-divider hr {
+            border: none;
+            height: 3px;
+            background: var(--black);
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: 0 calc(var(--grid-unit) * 3);
+        }
+
+        .post-item {
+            padding: calc(var(--grid-unit) * 4) 0;
+            border-bottom: 1px solid var(--gray-300);
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: calc(var(--grid-unit) * 3);
+            align-items: start;
+        }
+
+        .post-item:first-child {
+            padding-top: calc(var(--grid-unit) * 5);
+        }
+
+        .post-item-link {
+            text-decoration: none;
+            color: inherit;
+            display: contents;
+        }
+
+        .post-item-date-col {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            padding-top: calc(var(--grid-unit) * 0.5);
+        }
+
+        .post-item-date-col .reading-time {
+            display: block;
+            margin-top: calc(var(--grid-unit) * 0.5);
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .post-item-content {
+            min-width: 0;
+        }
+
+        .post-item-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            margin-bottom: calc(var(--grid-unit) * 1);
+            transition: color 0.15s;
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--blue);
+        }
+
+        .post-item-excerpt {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+            margin-bottom: calc(var(--grid-unit) * 1.5);
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: calc(var(--grid-unit) * 0.75);
+            flex-wrap: wrap;
+        }
+
+        .post-item-tags span {
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--white);
+            background: var(--black);
+            padding: 2px calc(var(--grid-unit) * 1);
+        }
+
+        /* --- Counter decoration --- */
+        .post-item {
+            counter-increment: posts;
+        }
+
+        .post-item-date-col::before {
+            content: counter(posts, decimal-leading-zero);
+            display: block;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-300);
+            line-height: 1;
+            margin-bottom: calc(var(--grid-unit) * 1.5);
+        }
+
+        .post-list {
+            counter-reset: posts;
+        }
+
+        /* --- Empty State --- */
+        .empty-state {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 12) calc(var(--grid-unit) * 3);
+            text-align: center;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            color: var(--gray-500);
+            margin-bottom: calc(var(--grid-unit) * 2);
+        }
+
+        .empty-state code {
+            font-family: 'SF Mono', monospace;
+            font-size: 0.82rem;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            padding: 4px 8px;
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 6) calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 10);
+        }
+
+        .index-footer p {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray-500);
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+
+            .index-header {
+                padding: calc(var(--grid-unit) * 6) calc(var(--grid-unit) * 2) calc(var(--grid-unit) * 4);
+            }
+
+            .post-list {
+                padding: 0 calc(var(--grid-unit) * 2);
+            }
+
+            .post-item {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .post-item-date-col {
+                display: flex;
+                align-items: center;
+                gap: calc(var(--grid-unit) * 2);
+                margin-bottom: calc(var(--grid-unit) * 1);
+            }
+
+            .post-item-date-col::before {
+                font-size: 1.2rem;
+                margin-bottom: 0;
+            }
+
+            .post-item-date-col .reading-time {
+                display: inline;
+                margin-top: 0;
+            }
+
+            .index-divider {
+                padding: 0 calc(var(--grid-unit) * 2);
+            }
+
+            .index-footer {
+                padding: calc(var(--grid-unit) * 4) calc(var(--grid-unit) * 2) calc(var(--grid-unit) * 6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bauhaus geometric elements -->
+    <div class="geo-sidebar"></div>
+
+    <div class="index-wrapper">
+        <div class="geo-bar"></div>
+
+        <header class="index-header">
+            <h1 class="index-title">{{ site_title }}<span class="accent">.</span></h1>
+            <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+        </header>
+
+        <div class="index-divider"><hr></div>
+
+        {% if posts %}
+        <ol class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <a href="{{ post.permalink }}" class="post-item-link">
+                    <div class="post-item-date-col">
+                        <time datetime="{{ post.date }}">{{ post.display_date }}</time>
+                        <span class="reading-time">{{ post.reading_time }} min</span>
+                    </div>
+                    <div class="post-item-content">
+                        <h2 class="post-item-title">{{ post.title }}</h2>
+                        <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                        {% if post.tags %}
+                        <div class="post-item-tags">
+                            {% for tag in post.tags %}
+                            <span>{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <div class="empty-state">
+            <p>No posts yet.</p>
+            <p>Push some Markdown to get started.</p>
+            <code>curl -X POST /publish</code>
+        </div>
+        {% endif %}
+
+        <footer class="index-footer">
+            <p>Published with note2cms — the past-browser publishing protocol</p>
+        </footer>
+    </div>
+</body>
+</html>

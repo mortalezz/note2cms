@@ -269,6 +269,42 @@ async def list_posts():
 
 
 # ---------------------------------------------------------------------------
+# Bonus: POST /rebuild — re-render all posts with current theme
+# ---------------------------------------------------------------------------
+
+@app.post("/rebuild")
+async def rebuild_all(_token: str = Depends(verify_token)):
+    """
+    Re-render every post with the current theme.
+    Use after switching ACTIVE_THEME.
+    """
+    posts = await db.list_posts()
+    rebuilt = 0
+
+    for p in posts:
+        source = await _retrieve_source(p["slug"])
+        if source is None:
+            continue
+
+        post = parse_markdown(source)
+        post_html = builder.render_post(post)
+
+        if deployer:
+            await deployer.deploy_post(post.slug, post_html)
+        else:
+            post_dir = STATIC_DIR / post.slug
+            post_dir.mkdir(parents=True, exist_ok=True)
+            (post_dir / "index.html").write_text(post_html, encoding="utf-8")
+
+        rebuilt += 1
+
+    # Rebuild index
+    await _rebuild_index()
+
+    return {"status": "rebuilt", "posts": rebuilt}
+
+
+# ---------------------------------------------------------------------------
 # Static file serving (local mode only)
 # ---------------------------------------------------------------------------
 
