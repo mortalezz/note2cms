@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <meta name="description" content="{{ site_title }} - Blue Topaz style listing.">
+    <style>
+        :root {
+            --bg: #f5faff;
+            --surface: #ffffff;
+            --text: #1f2d3d;
+            --muted: #5b7088;
+            --accent: #0b84ff;
+            --accent-2: #00b3c7;
+            --rule: #d9e7f5;
+            --max-width: 920px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", "Inter", sans-serif;
+            background: linear-gradient(180deg, var(--bg), #ecf7ff);
+            color: var(--text);
+            line-height: 1.65;
+        }
+        .wrap { max-width: var(--max-width); margin: 0 auto; padding: 54px 22px; }
+        h1 { margin: 0; font-size: clamp(2.2rem, 5vw, 3rem); }
+        .subtitle { margin: 8px 0 34px; color: var(--muted); }
+        .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 12px;
+            padding: 16px 18px;
+            box-shadow: 0 8px 24px rgba(11, 132, 255, 0.08);
+        }
+        .card a { text-decoration: none; color: inherit; display: block; }
+        .meta { color: var(--muted); font-size: 0.9rem; }
+        h2 { margin: 6px 0 7px; font-size: 1.28rem; }
+        .excerpt { margin: 0; color: var(--muted); }
+        .tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+        .tags span {
+            font-size: 0.74rem;
+            padding: 2px 9px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--accent) 40%, white);
+            color: var(--accent);
+            background: color-mix(in srgb, var(--accent-2) 16%, white);
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>{{ site_title }}</h1>
+        <p class="subtitle">Blue Topaz edition</p>
+        {% if posts %}
+        <ul class="list">
+            {% for post in posts %}
+            <li class="card">
+                <a href="{{ post.permalink }}">
+                    <div class="meta">{{ post.display_date }} • {{ post.reading_time }} min read</div>
+                    <h2>{{ post.title }}</h2>
+                    <p class="excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="subtitle">No posts yet.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

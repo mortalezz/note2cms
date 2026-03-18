@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <meta name="description" content="{{ site_title }} - Typewriter style listing.">
+    <style>
+        :root {
+            --paper: #f3ede0;
+            --ink: #292421;
+            --muted: #5d554f;
+            --accent: #8f2a1d;
+            --rule: #d5c8b2;
+            --max-width: 860px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Courier Prime", "Courier New", monospace;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.7;
+        }
+        .wrap { max-width: var(--max-width); margin: 0 auto; padding: 54px 24px; }
+        h1 {
+            margin: 0;
+            font-size: clamp(2.2rem, 5vw, 3.1rem);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .subtitle { margin: 10px 0 30px; color: var(--muted); }
+        .list { list-style: none; margin: 0; padding: 0; }
+        .card { border-top: 1px dashed var(--rule); padding: 18px 0; }
+        .card:last-child { border-bottom: 1px dashed var(--rule); }
+        .card a { text-decoration: none; color: inherit; display: block; }
+        .meta { color: var(--muted); font-size: 0.92rem; }
+        h2 { margin: 6px 0 8px; font-size: 1.35rem; color: var(--accent); }
+        .excerpt { margin: 0; color: var(--muted); }
+        .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .tags span {
+            font-size: 0.78rem;
+            color: var(--accent);
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 1px;
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>{{ site_title }}</h1>
+        <p class="subtitle">Typewriter edition</p>
+        {% if posts %}
+        <ul class="list">
+            {% for post in posts %}
+            <li class="card">
+                <a href="{{ post.permalink }}">
+                    <div class="meta">{{ post.display_date }} • {{ post.reading_time }} min read</div>
+                    <h2>{{ post.title }}</h2>
+                    <p class="excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="subtitle">No posts yet.</p>
+        {% endif %}
+    </main>
+</body>
+</html>

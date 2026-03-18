@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+    <meta name="description" content="{{ site_title }} - Obsidian Nord style listing.">
+    <style>
+        :root {
+            --bg: #2e3440;
+            --surface: #3b4252;
+            --surface-2: #434c5e;
+            --text: #eceff4;
+            --muted: #d8dee9;
+            --accent: #88c0d0;
+            --accent-2: #81a1c1;
+            --rule: #4c566a;
+            --max-width: 900px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "IBM Plex Sans", "Inter", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+        }
+        .wrap { max-width: var(--max-width); margin: 0 auto; padding: 54px 22px; }
+        h1 { margin: 0; font-size: clamp(2.1rem, 5vw, 2.9rem); }
+        .subtitle { color: var(--muted); margin: 10px 0 30px; }
+        .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 13px; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .card a { text-decoration: none; color: inherit; display: block; }
+        .meta { color: var(--muted); font-size: 0.88rem; }
+        h2 { margin: 6px 0 8px; font-size: 1.25rem; color: var(--accent); }
+        .excerpt { margin: 0; color: var(--muted); }
+        .tags { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+        .tags span {
+            font-size: 0.72rem;
+            color: var(--accent);
+            border: 1px solid var(--accent-2);
+            border-radius: 6px;
+            padding: 1px 7px;
+            background: color-mix(in srgb, var(--surface-2) 85%, black);
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <h1>{{ site_title }}</h1>
+        <p class="subtitle">Obsidian Nord edition</p>
+        {% if posts %}
+        <ul class="list">
+            {% for post in posts %}
+            <li class="card">
+                <a href="{{ post.permalink }}">
+                    <div class="meta">{{ post.display_date }} • {{ post.reading_time }} min read</div>
+                    <h2>{{ post.title }}</h2>
+                    <p class="excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="subtitle">No posts yet.</p>
+        {% endif %}
+    </main>
+</body>
+</html>
