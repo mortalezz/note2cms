@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <style>
+        :root {
+            --bg: #2e3440;
+            --surface: #3b4252;
+            --surface-2: #434c5e;
+            --text: #eceff4;
+            --muted: #d8dee9;
+            --accent: #88c0d0;
+            --accent-2: #81a1c1;
+            --rule: #4c566a;
+            --max-width: 760px;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "IBM Plex Sans", "Inter", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.75;
+        }
+        .wrap { max-width: var(--max-width); margin: 0 auto; padding: 54px 22px; }
+        .meta { color: var(--muted); font-size: 0.88rem; }
+        h1 { margin: 8px 0 14px; font-size: clamp(2rem, 5vw, 2.7rem); color: var(--accent); }
+        .tags { display: flex; gap: 7px; flex-wrap: wrap; margin: 0 0 22px; }
+        .tags span {
+            font-size: 0.72rem;
+            color: var(--accent);
+            border: 1px solid var(--accent-2);
+            border-radius: 6px;
+            padding: 1px 7px;
+            background: color-mix(in srgb, var(--surface-2) 85%, black);
+        }
+        article {
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 24px;
+        }
+        article a { color: var(--accent); }
+        article pre {
+            background: color-mix(in srgb, var(--surface-2) 85%, black);
+            border: 1px solid var(--rule);
+            border-radius: 10px;
+            padding: 14px;
+            overflow-x: auto;
+        }
+        article code {
+            background: color-mix(in srgb, var(--surface-2) 85%, black);
+            border: 1px solid var(--rule);
+            border-radius: 6px;
+            padding: 1px 6px;
+        }
+        .back { display: inline-block; margin-top: 24px; color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <main class="wrap">
+        <div class="meta">{{ date }} • {{ reading_time }} min read</div>
+        <h1>{{ title }}</h1>
+        {% if tags %}
+        <div class="tags">
+            {% for tag in tags %}
+            <span>{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <article>{{ content }}</article>
+        <a class="back" href="{{ site_url }}/posts/">← All posts</a>
+    </main>
+</body>
+</html>
