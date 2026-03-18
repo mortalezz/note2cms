@@ -53,11 +53,36 @@ No admin panel. No browser-based editor. No login screen. No monthly fee. No ven
 
 That's the whole CMS.
 
-## Theming
+## Theme Usage
 
-A theme is a function. It receives props, it returns HTML. The default ships as Jinja2 templates (zero dependencies) or React JSX components (for developers who want component composition).
+A theme consists of two templates in `themes/<theme_name>/`:
 
-Want to change your blog's entire visual identity? Replace two template files. A bootcamp grad can build a production theme in an afternoon.
+- `themes/<theme_name>/index.html` — template for the posts list page
+- `themes/<theme_name>/post.html` — template for a single post page
+
+### How to choose or switch a theme
+
+The active theme is controlled by the `ACTIVE_THEME` environment variable (for example, in Leapcell or in `.env` for self-hosting):
+
+```
+ACTIVE_THEME=swiss
+```
+
+After changing it:
+
+1. Restart/rebuild the service.
+2. Rebuild posts to apply the new theme across the full archive:
+
+```bash
+curl -X POST https://YOUR_API_URL/rebuild \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### How to create or customize a theme
+
+The easiest approach is to copy an existing theme (for example, `themes/default/` or `themes/swiss/`) into a new directory and modify `index.html` and `post.html` for your style. The core rendering logic stays the same: the pipeline injects post data, while the theme controls the HTML/CSS presentation.
+
+For template variables, structure, and examples, see **[THEMING.md](THEMING.md)**.
 
 ## Deployment
 
