@@ -260,6 +260,42 @@ async def list_posts():
 
 
 # ---------------------------------------------------------------------------
+# Bonus: POST /rebuild — re-render all posts with current theme
+# ---------------------------------------------------------------------------
+
+@app.post("/rebuild")
+async def rebuild_all(_token: str = Depends(verify_token)):
+    """
+    Re-render every post with the current theme.
+    Use after switching ACTIVE_THEME.
+    """
+    posts = await db.list_posts()
+    rebuilt = 0
+
+    for p in posts:
+        source = await _retrieve_source(p["slug"])
+        if source is None:
+            continue
+
+        post = parse_markdown(source)
+        post_html = builder.render_post(post)
+
+        if deployer:
+            await deployer.deploy_post(post.slug, post_html)
+        else:
+            post_dir = STATIC_DIR / post.slug
+            post_dir.mkdir(parents=True, exist_ok=True)
+            (post_dir / "index.html").write_text(post_html, encoding="utf-8")
+
+        rebuilt += 1
+
+    # Rebuild index
+    await _rebuild_index()
+
+    return {"status": "rebuilt", "posts": rebuilt}
+
+
+# ---------------------------------------------------------------------------
 # Static file serving (local mode only)
 # ---------------------------------------------------------------------------
 
@@ -291,7 +327,7 @@ async def _ensure_source_table():
     """Create the markdown source table in PostgreSQL."""
     if hasattr(db, '_pool'):  # PostgreSQL
         async with db._pool.connection() as conn:
-            await conn.set_autocommit(True)
+            conn.autocommit = True
             async with conn.cursor() as cur:
                 await cur.execute("""
                     CREATE TABLE IF NOT EXISTS markdown_source (
@@ -306,7 +342,7 @@ async def _store_source(slug: str, markdown: str):
     """Store raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            await conn.set_autocommit(True)
+            conn.autocommit = True
             async with conn.cursor() as cur:
                 await cur.execute("""
                     INSERT INTO markdown_source (slug, content, updated_at)
@@ -324,7 +360,7 @@ async def _retrieve_source(slug: str) -> Optional[str]:
     """Retrieve raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            await conn.set_autocommit(True)
+            conn.autocommit = True
             async with conn.cursor() as cur:
                 await cur.execute(
                     "SELECT content FROM markdown_source WHERE slug = %s", (slug,)
@@ -342,7 +378,7 @@ async def _delete_source(slug: str):
     """Delete raw Markdown — DB in cloud, filesystem locally."""
     if CLOUD_MODE and hasattr(db, '_pool'):
         async with db._pool.connection() as conn:
-            await conn.set_autocommit(True)
+            conn.autocommit = True
             async with conn.cursor() as cur:
                 await cur.execute(
                     "DELETE FROM markdown_source WHERE slug = %s", (slug,)

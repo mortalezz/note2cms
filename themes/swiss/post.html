@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+        :root {
+            --black: #0a0a0a;
+            --white: #fafafa;
+            --red: #e63222;
+            --blue: #2244cc;
+            --yellow: #ffcc00;
+            --gray-100: #f2f2f2;
+            --gray-300: #cccccc;
+            --gray-500: #888888;
+            --gray-700: #444444;
+            --grid-unit: 8px;
+            --col-width: min(720px, 90vw);
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 17px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+        }
+
+        /* --- Geometric Decoration --- */
+        .geo-bar {
+            height: calc(var(--grid-unit) * 1);
+            background: var(--red);
+            width: 100%;
+        }
+
+        .geo-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: calc(var(--grid-unit) * 1);
+            height: 100vh;
+            background: var(--blue);
+            z-index: 100;
+        }
+
+        .geo-circle {
+            position: fixed;
+            bottom: calc(var(--grid-unit) * 5);
+            left: calc(var(--grid-unit) * 4);
+            width: calc(var(--grid-unit) * 6);
+            height: calc(var(--grid-unit) * 6);
+            border-radius: 50%;
+            background: var(--yellow);
+            z-index: 100;
+            opacity: 0.9;
+        }
+
+        /* --- Layout --- */
+        .post-wrapper {
+            margin-left: calc(var(--grid-unit) * 1);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .post-header {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 10) calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 5);
+            width: 100%;
+        }
+
+        .post-meta {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            margin-bottom: calc(var(--grid-unit) * 2);
+            display: flex;
+            gap: calc(var(--grid-unit) * 2);
+            align-items: center;
+        }
+
+        .post-meta .divider {
+            width: calc(var(--grid-unit) * 4);
+            height: 2px;
+            background: var(--red);
+        }
+
+        .post-title {
+            font-size: clamp(2.2rem, 5vw, 3.4rem);
+            font-weight: 700;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            text-transform: uppercase;
+            color: var(--black);
+            margin-bottom: calc(var(--grid-unit) * 3);
+            max-width: 14ch;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: calc(var(--grid-unit) * 1);
+            flex-wrap: wrap;
+        }
+
+        .post-tags span {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--white);
+            background: var(--black);
+            padding: calc(var(--grid-unit) * 0.5) calc(var(--grid-unit) * 1.5);
+        }
+
+        /* --- Horizontal Rule between header and content --- */
+        .header-rule {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: 0 calc(var(--grid-unit) * 3);
+            width: 100%;
+        }
+
+        .header-rule hr {
+            border: none;
+            height: 3px;
+            background: var(--black);
+            margin: 0;
+        }
+
+        /* --- Content --- */
+        .post-content {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 5) calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 8);
+            width: 100%;
+        }
+
+        .post-content p {
+            margin-bottom: calc(var(--grid-unit) * 3);
+            font-weight: 400;
+            line-height: 1.7;
+        }
+
+        .post-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin: calc(var(--grid-unit) * 7) 0 calc(var(--grid-unit) * 2);
+            padding-left: calc(var(--grid-unit) * 2);
+            border-left: 4px solid var(--red);
+        }
+
+        .post-content h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin: calc(var(--grid-unit) * 5) 0 calc(var(--grid-unit) * 2);
+            color: var(--blue);
+        }
+
+        .post-content h4 {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin: calc(var(--grid-unit) * 4) 0 calc(var(--grid-unit) * 1);
+            color: var(--gray-500);
+        }
+
+        .post-content a {
+            color: var(--blue);
+            text-decoration: none;
+            border-bottom: 2px solid var(--blue);
+            transition: border-color 0.15s;
+        }
+
+        .post-content a:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .post-content blockquote {
+            border-left: 4px solid var(--yellow);
+            background: var(--gray-100);
+            padding: calc(var(--grid-unit) * 3);
+            margin: calc(var(--grid-unit) * 4) 0;
+            font-weight: 500;
+        }
+
+        .post-content blockquote p {
+            margin-bottom: calc(var(--grid-unit) * 1);
+        }
+
+        .post-content blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content ul, .post-content ol {
+            padding-left: calc(var(--grid-unit) * 4);
+            margin-bottom: calc(var(--grid-unit) * 3);
+        }
+
+        .post-content li {
+            margin-bottom: calc(var(--grid-unit) * 1);
+            line-height: 1.6;
+        }
+
+        .post-content li::marker {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        .post-content code {
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 0.85rem;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-300);
+            padding: 2px 6px;
+        }
+
+        .post-content pre {
+            background: var(--black);
+            color: var(--white);
+            padding: calc(var(--grid-unit) * 3);
+            margin: calc(var(--grid-unit) * 4) 0;
+            overflow-x: auto;
+            border-left: 4px solid var(--blue);
+        }
+
+        .post-content pre code {
+            background: none;
+            border: none;
+            color: inherit;
+            padding: 0;
+            font-size: 0.82rem;
+            line-height: 1.7;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            margin: calc(var(--grid-unit) * 4) 0;
+        }
+
+        .post-content hr {
+            border: none;
+            height: 3px;
+            background: var(--black);
+            margin: calc(var(--grid-unit) * 6) 0;
+            max-width: calc(var(--grid-unit) * 12);
+        }
+
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: calc(var(--grid-unit) * 4) 0;
+        }
+
+        .post-content th {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: left;
+            padding: calc(var(--grid-unit) * 1.5) calc(var(--grid-unit) * 2);
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .post-content td {
+            padding: calc(var(--grid-unit) * 1.5) calc(var(--grid-unit) * 2);
+            border-bottom: 1px solid var(--gray-300);
+        }
+
+        .post-content em {
+            font-style: italic;
+        }
+
+        .post-content strong {
+            font-weight: 700;
+        }
+
+        /* --- Footer --- */
+        .post-footer {
+            max-width: var(--col-width);
+            margin: 0 auto;
+            padding: calc(var(--grid-unit) * 4) calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 10);
+            width: 100%;
+            border-top: 3px solid var(--black);
+        }
+
+        .post-footer a {
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--blue);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: calc(var(--grid-unit) * 1);
+            transition: color 0.15s;
+        }
+
+        .post-footer a:hover {
+            color: var(--red);
+        }
+
+        .post-footer .arrow {
+            font-size: 1.4rem;
+            line-height: 1;
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+
+            .geo-circle { display: none; }
+
+            .post-header {
+                padding: calc(var(--grid-unit) * 6) calc(var(--grid-unit) * 2) calc(var(--grid-unit) * 3);
+            }
+
+            .post-title {
+                font-size: 2rem;
+                max-width: none;
+            }
+
+            .post-content {
+                padding: calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 2) calc(var(--grid-unit) * 6);
+            }
+
+            .header-rule {
+                padding: 0 calc(var(--grid-unit) * 2);
+            }
+
+            .post-footer {
+                padding: calc(var(--grid-unit) * 3) calc(var(--grid-unit) * 2) calc(var(--grid-unit) * 6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Bauhaus geometric elements -->
+    <div class="geo-sidebar"></div>
+    <div class="geo-circle"></div>
+
+    <div class="post-wrapper">
+        <div class="geo-bar"></div>
+
+        <article>
+            <header class="post-header">
+                <div class="post-meta">
+                    <time datetime="{{ date_iso }}">{{ date }}</time>
+                    <span class="divider"></span>
+                    <span>{{ reading_time }} min read</span>
+                </div>
+                <h1 class="post-title">{{ title }}</h1>
+                {% if tags %}
+                <div class="post-tags">
+                    {% for tag in tags %}
+                    <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </header>
+
+            <div class="header-rule"><hr></div>
+
+            <div class="post-content">
+                {{ content }}
+            </div>
+        </article>
+
+        <footer class="post-footer">
+            <a href="{{ site_url }}/posts/">
+                <span class="arrow">←</span> All Posts
+            </a>
+        </footer>
+    </div>
+</body>
+</html>
