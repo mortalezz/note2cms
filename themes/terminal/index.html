@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        :root {
+            --bg: #0a0e14;
+            --surface: #0d1117;
+            --green: #00ff88;
+            --green-dim: #00cc6a;
+            --green-glow: rgba(0, 255, 136, 0.15);
+            --amber: #ffb300;
+            --cyan: #00e5ff;
+            --text: #c0c8d8;
+            --text-dim: #5a6577;
+            --border: #1a2233;
+            --max-width: 52rem;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(
+                0deg, transparent, transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px, rgba(0, 0, 0, 0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .prompt-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .prompt-bar .path { color: var(--cyan); }
+
+        /* --- Header --- */
+        .index-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem 2rem;
+        }
+
+        .index-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px var(--green-glow);
+        }
+
+        .index-subtitle {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+        }
+
+        /* --- Divider --- */
+        .divider {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .divider hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+        }
+
+        .post-item {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .post-item-link {
+            display: block;
+            padding: 1.2rem 0;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--green);
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+
+        .post-item-row {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .post-item-date {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-width: 7rem;
+        }
+
+        .post-item-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            transition: all 0.15s;
+        }
+
+        .post-item-reading {
+            font-size: 0.7rem;
+            color: var(--amber);
+            white-space: nowrap;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .post-item-excerpt {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            padding-left: 8rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            padding-left: 8rem;
+        }
+
+        .post-item-tags span {
+            font-size: 0.65rem;
+            color: var(--cyan);
+            opacity: 0.7;
+        }
+
+        .post-item-tags span::before { content: "#"; }
+
+        /* --- Empty --- */
+        .empty-state {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        .empty-state .cursor {
+            display: inline-block;
+            width: 0.6rem;
+            height: 1.1rem;
+            background: var(--green);
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+        }
+
+        .index-footer .prompt { color: var(--green); }
+
+        @media (max-width: 640px) {
+            html { font-size: 14px; }
+            .post-item-row { flex-wrap: wrap; }
+            .post-item-excerpt, .post-item-tags { padding-left: 0; }
+            .index-header { padding: 3rem 1.2rem 1.5rem; }
+            .post-list { padding: 1rem 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="prompt-bar">
+        <span>{{ site_title }} <span class="path">~/posts/</span></span>
+    </div>
+
+    <header class="index-header">
+        <h1 class="index-title">{{ site_title }}</h1>
+        <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+    </header>
+
+    <div class="divider"><hr></div>
+
+    {% if posts %}
+    <ul class="post-list">
+        {% for post in posts %}
+        <li class="post-item">
+            <a href="{{ post.permalink }}" class="post-item-link">
+                <div class="post-item-row">
+                    <span class="post-item-date">{{ post.display_date }}</span>
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <span class="post-item-reading">{{ post.reading_time }}m</span>
+                </div>
+                <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                {% if post.tags %}
+                <div class="post-item-tags">
+                    {% for tag in post.tags %}
+                    <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+        <p>$ ls posts/</p>
+        <p>No posts found. <span class="cursor"></span></p>
+    </div>
+    {% endif %}
+
+    <footer class="index-footer">
+        <p><span class="prompt">$</span> note2cms — past-browser publishing protocol</p>
+    </footer>
+</body>
+</html>

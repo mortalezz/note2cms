@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        :root {
+            --bg: #0a0e14;
+            --surface: #0d1117;
+            --green: #00ff88;
+            --green-dim: #00cc6a;
+            --green-glow: rgba(0, 255, 136, 0.15);
+            --amber: #ffb300;
+            --cyan: #00e5ff;
+            --text: #c0c8d8;
+            --text-dim: #5a6577;
+            --border: #1a2233;
+            --max-width: 48rem;
+        }
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: 'Fira Code', 'SF Mono', monospace;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* CRT scanline effect */
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.08) 2px,
+                rgba(0, 0, 0, 0.08) 4px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* --- Prompt bar --- */
+        .prompt-bar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.6rem 1.5rem;
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prompt-bar .path {
+            color: var(--cyan);
+        }
+
+        /* --- Header --- */
+        .post-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem 2rem;
+        }
+
+        .post-meta {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .post-meta .sep {
+            color: var(--green);
+        }
+
+        .post-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--green);
+            margin-bottom: 1.2rem;
+            text-shadow: 0 0 30px var(--green-glow);
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .post-tags span {
+            font-size: 0.7rem;
+            color: var(--amber);
+            padding: 0.2rem 0.6rem;
+            border: 1px solid var(--amber);
+            border-radius: 2px;
+        }
+
+        /* --- Content --- */
+        .post-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        .post-content p {
+            margin-bottom: 1.4rem;
+            font-size: 0.92rem;
+        }
+
+        .post-content h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--green);
+            margin: 3rem 0 1rem;
+        }
+
+        .post-content h2::before {
+            content: "## ";
+            color: var(--text-dim);
+        }
+
+        .post-content h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--cyan);
+            margin: 2.5rem 0 0.8rem;
+        }
+
+        .post-content h3::before {
+            content: "### ";
+            color: var(--text-dim);
+        }
+
+        .post-content h4 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--amber);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin: 2rem 0 0.6rem;
+        }
+
+        .post-content a {
+            color: var(--cyan);
+            text-decoration: none;
+            border-bottom: 1px solid var(--cyan);
+        }
+
+        .post-content a:hover {
+            color: var(--green);
+            border-color: var(--green);
+            text-shadow: 0 0 8px var(--green-glow);
+        }
+
+        .post-content blockquote {
+            border-left: 3px solid var(--green);
+            padding: 0.5rem 1.2rem;
+            margin: 1.5rem 0;
+            background: var(--surface);
+            color: var(--green-dim);
+            font-style: italic;
+        }
+
+        .post-content blockquote p {
+            margin-bottom: 0.4rem;
+        }
+
+        .post-content blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content ul, .post-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.4rem;
+        }
+
+        .post-content li {
+            margin-bottom: 0.3rem;
+            font-size: 0.92rem;
+        }
+
+        .post-content li::marker {
+            color: var(--green);
+        }
+
+        .post-content code {
+            font-family: inherit;
+            font-size: 0.88rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 5px;
+            color: var(--amber);
+        }
+
+        .post-content pre {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--cyan);
+            padding: 1.2rem 1.5rem;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+
+        .post-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            color: var(--text);
+            font-size: 0.85rem;
+            line-height: 1.7;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid var(--border);
+            margin: 1.5rem 0;
+        }
+
+        .post-content hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+            margin: 3rem 0;
+        }
+
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.85rem;
+        }
+
+        .post-content th {
+            text-align: left;
+            padding: 0.5rem 0.8rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--green);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .post-content td {
+            padding: 0.5rem 0.8rem;
+            border: 1px solid var(--border);
+        }
+
+        /* --- Footer --- */
+        .post-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-footer a {
+            font-size: 0.8rem;
+            color: var(--green);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .post-footer a:hover {
+            text-shadow: 0 0 10px var(--green-glow);
+        }
+
+        .post-footer a::before {
+            content: "$ cd ";
+            color: var(--text-dim);
+        }
+
+        @media (max-width: 640px) {
+            html { font-size: 14px; }
+            .post-header { padding: 3rem 1.2rem 1.5rem; }
+            .post-content { padding: 0 1.2rem 3rem; }
+            .post-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="prompt-bar">
+        <span>{{ site_title }} <span class="path">~/posts/{{ slug }}</span></span>
+        <span>{{ reading_time }}m read</span>
+    </div>
+
+    <article>
+        <header class="post-header">
+            <div class="post-meta">
+                <time datetime="{{ date_iso }}">{{ date }}</time>
+                <span class="sep">|</span>
+                <span>{{ reading_time }} min read</span>
+            </div>
+            <h1 class="post-title">{{ title }}</h1>
+            {% if tags %}
+            <div class="post-tags">
+                {% for tag in tags %}
+                <span>{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="post-content">
+            {{ content }}
+        </div>
+    </article>
+
+    <footer class="post-footer">
+        <a href="{{ site_url }}/posts/">../posts/</a>
+    </footer>
+</body>
+</html>

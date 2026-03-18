@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html { font-size: 15px; }
+
+        body {
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            background: #ffffff;
+            color: #000000;
+            line-height: 1.6;
+            border: 4px solid #000000;
+            min-height: 100vh;
+        }
+
+        .index-header {
+            padding: 2rem;
+            border-bottom: 4px solid #000000;
+        }
+
+        .index-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+
+        .index-subtitle {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+        }
+
+        .post-item {
+            border-bottom: 2px solid #000000;
+        }
+
+        .post-item-link {
+            display: block;
+            padding: 1.2rem 2rem;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.05s;
+        }
+
+        .post-item-link:hover {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .post-item-link:hover .post-item-tags span {
+            border-color: #ffffff;
+            color: #ffffff;
+        }
+
+        .post-item-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .post-item-title {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .post-item-meta {
+            font-size: 0.7rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .post-item-excerpt {
+            font-size: 0.8rem;
+            line-height: 1.5;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .post-item-tags span {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            border: 1px solid #000000;
+            padding: 0.1rem 0.35rem;
+        }
+
+        /* --- Empty --- */
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .empty-state p {
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state code {
+            font-family: inherit;
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border: 1px solid #cccccc;
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            padding: 1rem 2rem;
+            border-top: 4px solid #000000;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 640px) {
+            body { border-width: 3px; }
+            .post-item-link { padding: 1rem 1.5rem; }
+            .post-item-top { flex-direction: column; gap: 0; }
+            .index-header { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="index-header">
+        <h1 class="index-title">{{ site_title }}</h1>
+        <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+    </header>
+
+    {% if posts %}
+    <ul class="post-list">
+        {% for post in posts %}
+        <li class="post-item">
+            <a href="{{ post.permalink }}" class="post-item-link">
+                <div class="post-item-top">
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <span class="post-item-meta">[{{ post.display_date }}] [{{ post.reading_time }}min]</span>
+                </div>
+                <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                {% if post.tags %}
+                <div class="post-item-tags">
+                    {% for tag in post.tags %}
+                    <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty-state">
+        <p>NO POSTS.</p>
+        <p><code>curl -X POST /publish</code></p>
+    </div>
+    {% endif %}
+
+    <footer class="index-footer">
+        <p>note2cms — past-browser publishing protocol</p>
+    </footer>
+</body>
+</html>
