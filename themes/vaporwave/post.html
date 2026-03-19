@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;800&family=Azeret+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg: #1a1025;
+            --surface: #221533;
+            --pink: #ff6ec7;
+            --cyan: #72f2eb;
+            --lavender: #c4b5fd;
+            --peach: #ffb3b3;
+            --text: #e8dff5;
+            --text-dim: #8b7fa8;
+            --border: #2d1f42;
+            --gradient-1: linear-gradient(135deg, #ff6ec7, #7c3aed);
+            --gradient-2: linear-gradient(135deg, #72f2eb, #818cf8);
+            --max-width: 44rem;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* Gradient mesh background */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%;
+            right: -30%;
+            width: 80vw;
+            height: 80vw;
+            background: radial-gradient(ellipse, rgba(124, 58, 237, 0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            bottom: -30%;
+            left: -20%;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(ellipse, rgba(255, 110, 199, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* --- Top gradient bar --- */
+        .gradient-bar {
+            height: 4px;
+            background: var(--gradient-1);
+        }
+
+        /* --- Header --- */
+        .post-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 5rem 1.5rem 2.5rem;
+            position: relative;
+        }
+
+        .post-meta {
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            margin-bottom: 1.2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .post-meta .dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--pink);
+        }
+
+        .post-title {
+            font-size: 2.6rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .post-tags span {
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--cyan);
+            padding: 0.25rem 0.7rem;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            background: rgba(114, 242, 235, 0.06);
+        }
+
+        /* --- Content --- */
+        .post-content {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+            position: relative;
+        }
+
+        .post-content p {
+            margin-bottom: 1.5rem;
+            font-weight: 300;
+        }
+
+        .post-content h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 3rem 0 1rem;
+            color: var(--cyan);
+        }
+
+        .post-content h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 2.5rem 0 0.8rem;
+            color: var(--lavender);
+        }
+
+        .post-content h4 {
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin: 2rem 0 0.6rem;
+            color: var(--text-dim);
+        }
+
+        .post-content a {
+            color: var(--pink);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 110, 199, 0.3);
+            transition: all 0.2s;
+        }
+
+        .post-content a:hover {
+            border-color: var(--pink);
+            text-shadow: 0 0 12px rgba(255, 110, 199, 0.3);
+        }
+
+        .post-content blockquote {
+            border-left: 3px solid var(--lavender);
+            padding: 0.5rem 1.5rem;
+            margin: 2rem 0;
+            background: var(--surface);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--lavender);
+        }
+
+        .post-content blockquote p {
+            margin-bottom: 0.5rem;
+        }
+
+        .post-content blockquote p:last-child {
+            margin-bottom: 0;
+        }
+
+        .post-content ul, .post-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .post-content li {
+            margin-bottom: 0.4rem;
+            font-weight: 300;
+        }
+
+        .post-content li::marker {
+            color: var(--pink);
+        }
+
+        .post-content code {
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--peach);
+        }
+
+        .post-content pre {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.2rem 1.5rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+        }
+
+        .post-content pre code {
+            background: none;
+            border: none;
+            padding: 0;
+            border-radius: 0;
+            color: var(--text);
+            font-size: 0.82rem;
+            line-height: 1.7;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .post-content hr {
+            border: none;
+            height: 2px;
+            background: var(--gradient-2);
+            margin: 3rem auto;
+            max-width: 8rem;
+            border-radius: 2px;
+        }
+
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.88rem;
+        }
+
+        .post-content th {
+            text-align: left;
+            padding: 0.6rem 1rem;
+            background: var(--surface);
+            color: var(--cyan);
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .post-content td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* --- Footer --- */
+        .post-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .post-footer a {
+            font-family: 'Azeret Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--pink);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .post-footer a:hover {
+            text-shadow: 0 0 12px rgba(255, 110, 199, 0.3);
+            gap: 0.8rem;
+        }
+
+        .post-footer .arrow {
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+            .post-header { padding: 3.5rem 1.2rem 2rem; }
+            .post-title { font-size: 2rem; }
+            .post-content { padding: 0 1.2rem 3rem; }
+            .post-footer { padding: 2rem 1.2rem 4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-bar"></div>
+
+    <article>
+        <header class="post-header">
+            <div class="post-meta">
+                <time datetime="{{ date_iso }}">{{ date }}</time>
+                <span class="dot"></span>
+                <span>{{ reading_time }} min read</span>
+            </div>
+            <h1 class="post-title">{{ title }}</h1>
+            {% if tags %}
+            <div class="post-tags">
+                {% for tag in tags %}
+                <span>{{ tag }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="post-content">
+            {{ content }}
+        </div>
+    </article>
+
+    <footer class="post-footer">
+        <a href="{{ site_url }}/posts/">
+            <span class="arrow">←</span> all posts
+        </a>
+    </footer>
+</body>
+</html>
