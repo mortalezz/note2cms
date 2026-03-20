@@ -18,6 +18,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import PlainTextResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from pipeline.parser import parse_markdown
@@ -110,7 +111,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # ---------------------------------------------------------------------------
 # Auth
 # ---------------------------------------------------------------------------
@@ -156,14 +163,20 @@ class PostSummary(BaseModel):
 @app.post("/publish", response_model=PublishResponse)
 async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
     """Push Markdown, get a permalink."""
-    post = parse_markdown(req.markdown)
+    # PostgreSQL TEXT cannot contain NUL bytes; strip them if present.
+    raw_markdown = req.markdown
+    if "\x00" in raw_markdown:
+        print("[publish] Warning: stripped NUL bytes from markdown")
+        raw_markdown = raw_markdown.replace("\x00", "")
+
+    post = parse_markdown(raw_markdown)
 
     # Check if this is new or an update
     existing = await db.get_post(post.slug)
     is_new = existing is None
 
     # Store source Markdown
-    await _store_source(post.slug, req.markdown)
+    await _store_source(post.slug, raw_markdown)
 
     # Build HTML
     post_html = builder.render_post(post)
@@ -212,12 +225,14 @@ async def get_source(slug: str, _token: str = Depends(verify_token)):
 @app.delete("/posts/{slug}")
 async def delete_post(slug: str, _token: str = Depends(verify_token)):
     """Remove a post entirely."""
-    source = await _retrieve_source(slug)
-    if source is None:
+    existing = await db.get_post(slug)
+    if existing is None:
         raise HTTPException(404, f"Post '{slug}' not found")
 
     # Remove source
-    await _delete_source(slug)
+    source = await _retrieve_source(slug)
+    if source is not None:
+        await _delete_source(slug)
 
     # Remove built output
     if deployer:
