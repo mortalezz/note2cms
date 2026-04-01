@@ -1,0 +1,18 @@
+[project]
+name = "note2cms"
+version = "0.2.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[standard]",
+    "psycopg[binary]>=3.1.0",
+    "psycopg-pool>=3.1.0",
+    "python-frontmatter",
+    "markdown",
+    "python-slugify",
+    "jinja2",
+    "httpx",
+    "cryptography",
+]
+
+[tool.fastapi]
+entrypoint = "api:app"
