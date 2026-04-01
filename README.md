@@ -1,199 +1,173 @@
-# note2cms
+# note2cms — SaaSless Publishing
 
-**Past-Browser Publishing Protocol (PBPP)**
-
-*Write where you think. Publish where they look. Own everything in between.*
-
-**[Live Demo →](https://mortalezz.github.io/blog/)** · **[Manifesto](MANIFESTO.md)** · **[Deploy for Free](INSTALL.md)**
+*We cannot lose what we do not hold.*
 
 ---
 
-## What Is This
+note2cms is a publishing pipeline. Markdown in, static HTML out, permalink back. No account. No dashboard. No browser-based editor. No pricing page. Just a token and a pipeline.
 
-A CMS that is not a CMS. Four API endpoints that turn your notes app into a blogging tool.
+This branch (`fastapicloud`) is the multi-tenant deployment on FastAPI Cloud. Anyone can register, get a token, and start publishing to their own GitHub Pages blog. The architecture is the same four endpoints, now aware of who's asking.
 
-You write in Apple Notes, Bear, Obsidian, vim — wherever you think. You push Markdown to an endpoint. Two parallel pipelines fire: one builds a beautiful static HTML page, the other updates a lightweight taxonomy. You get a permalink back. Share it with the world.
-
-No admin panel. No browser-based editor. No login screen. No monthly fee. No vendor lock-in. The output is static HTML served from a CDN. The infrastructure is disposable. Your words are the only thing that persists.
+**Live demo:** https://note2cms.fastapicloud.dev
 
 ## How It Works
 
 ```
-[Your Notes App]
-       │
-       ▼  POST /publish (Bearer token)
-  ┌────────────────────────┐
-  │  FastAPI (4 endpoints)  │
-  │  ┌──────────┬─────────┐ │
-  │  │ Pipeline 1│Pipeline 2│ │
-  │  │  Build    │ Taxonomy │ │
-  │  │  HTML     │ Index    │ │
-  │  └──────────┴─────────┘ │
-  └────────────────────────┘
-       │              │
-       ▼              ▼
-  Static HTML    PostgreSQL/SQLite
-  (GitHub Pages,    (post index)
-   Cloudflare,
-   any CDN)
-       │
-       ▼
-  Reader gets pure HTML + CSS
-  Zero JavaScript. Instant load.
+You → POST /register (GitHub repo + PAT)
+    ← token
+
+You → POST /publish (Bearer token + Markdown)
+    ← permalink
+
+Your readers → GitHub Pages (static HTML, zero compute)
 ```
 
-## The API
+One Neon table stores tokens and repo configs. No posts. No content. No Markdown. Your words live in your GitHub repo. The database is a doorman, not a warehouse.
 
-| Method   | Endpoint               | Description                    |
-|----------|------------------------|--------------------------------|
-| `POST`   | `/publish`             | Push Markdown, get a permalink |
-| `GET`    | `/posts/{slug}/source` | Get original Markdown back     |
-| `DELETE` | `/posts/{slug}`        | Remove a post                  |
-| `GET`    | `/posts`               | List all posts                 |
-
-That's the whole CMS.
-
-## Theme Usage
-
-A theme consists of two templates in `themes/<theme_name>/`:
-
-- `themes/<theme_name>/index.html` — template for the posts list page
-- `themes/<theme_name>/post.html` — template for a single post page
-
-### How to choose or switch a theme
-
-The active theme is controlled by the `ACTIVE_THEME` environment variable (for example, in Leapcell or in `.env` for self-hosting):
-
-```
-ACTIVE_THEME=swiss
-```
-
-After changing it:
-
-1. Restart/rebuild the service.
-2. Rebuild posts to apply the new theme across the full archive:
+## Register
 
 ```bash
-curl -X POST https://YOUR_API_URL/rebuild \
-  -H "Authorization: Bearer YOUR_TOKEN"
+curl -X POST https://note2cms.fastapicloud.dev/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "github_repo": "username/blog",
+    "github_token": "ghp_your_fine_grained_pat",
+    "site_url": "https://username.github.io/blog"
+  }'
 ```
 
-### How to create or customize a theme
+Returns your publishing token. Save it. We do not store what we do not need.
 
-The easiest approach is to copy an existing theme (for example, `themes/default/` or `themes/swiss/`) into a new directory and modify `index.html` and `post.html` for your style. The core rendering logic stays the same: the pipeline injects post data, while the theme controls the HTML/CSS presentation.
+Or use the registration form at the root URL — it previews your chosen theme in real-time before you register.
 
-For template variables, structure, and examples, see **[THEMING.md](THEMING.md)**.
-
-## Deployment
-
-note2cms runs for free. The entire stack:
-
-| Component       | Free Tier                          |
-|-----------------|------------------------------------|
-| **API Runtime** | [Leapcell](https://leapcell.io)    |
-| **Database**    | Leapcell PostgreSQL                |
-| **Static Host** | GitHub Pages / Cloudflare Pages    |
-| **SSL**         | Automatic via GitHub Pages         |
-| **CDN**         | Automatic via GitHub Pages         |
-
-**Total cost: a domain name. Twelve dollars a year.**
-
-See **[INSTALL.md](INSTALL.md)** for the complete step-by-step deployment guide.
-
-## Publishing
-
-From the command line:
+## Publish
 
 ```bash
-curl -X POST https://your-api.leapcell.dev/publish \
+curl -X POST https://note2cms.fastapicloud.dev/publish \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"markdown": "---\ntitle: Hello World\ntags: [first]\n---\n\nMy first post."}'
+  -d '{"markdown": "---\ntitle: Hello World\ntags: [first]\ndate: 2026-03-23\n---\n\nMy first post."}'
 ```
 
-From a Markdown file:
+Returns a permalink. Your post is live on GitHub Pages. The pipeline ran, rendered your Markdown through your chosen theme, deployed static HTML to your repo, updated your index, and died. No residual process. No background worker. No daemon.
 
-```bash
-jq -Rs '{markdown: .}' post.md | curl -X POST \
-  https://your-api.leapcell.dev/publish \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d @-
-```
+## Endpoints
 
-From iOS: a Shortcut that reads your note, wraps it in JSON, POSTs to the endpoint, copies the permalink.
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /register | No | Get a publishing token |
+| POST | /publish | Yes | Push Markdown, get permalink |
+| GET | /posts | Yes | List your posts |
+| GET | /posts/{slug}/source | Yes | Get original Markdown back |
+| DELETE | /posts/{slug} | Yes | Remove a post |
+| POST | /rebuild | Yes | Re-render all posts (theme switch) |
 
-From Android: a Share Intent to any HTTP client app.
+## Themes
 
-## Editing
+Eight themes ship with note2cms. Each has a distinct personality and a hidden visual trick.
 
-Want to edit a post? Get your original Markdown back:
+| Theme | The Personality |
+|---|---|
+| `terminal` | Phosphor green on black, CRT scanlines, `##` headers |
+| `brutalist` | IBM Plex Mono, 4px borders, binary hover inversion |
+| `ink` | Japanese calligraphy, vermillion brushstroke on load |
+| `darkroom` | Amber safelight, photographs that develop on scroll |
+| `vaporwave` | Pink-purple gradients, floating card lift on hover |
+| `manuscript` | Typed paper, red margin line, section annotations |
+| `swiss` | Bauhaus geometry, primary color bar, numbered posts |
+| `default` | Warm editorial serif, dark mode, quiet confidence |
 
-```bash
-curl https://your-api.leapcell.dev/posts/hello-world/source \
-  -H "Authorization: Bearer YOUR_TOKEN" > post.md
-```
+Choose your theme at registration. Change it anytime with `/rebuild`.
 
-Edit it in your notes app. Push it again. Same slug, updated content, rebuilt HTML.
-
-## Architecture Principles
-
-- **O(1) builds.** Publish one post, build one post. Your archive of 500 posts is untouched.
-- **Markdown is the system of record.** Database and HTML are derived. Delete them, rebuild from source.
-- **Build pipeline is disposable.** Workers wake up, transform, vanish. No residual state.
-- **A theme is a function.** Data in, markup out. React, Jinja2, Svelte — the pipeline does not care.
-- **Infrastructure is replaceable.** Move to any server, any host, any database. Only the domain matters.
-
-## Self-Hosting
-
-For those who prefer their own server over free tiers:
-
-```bash
-git clone https://github.com/mortalezz/note2cms.git
-cd note2cms
-pip install -r requirements.txt
-python -c "import secrets; print(secrets.token_urlsafe(32))"  # your API token
-
-# Set environment variables
-export API_TOKEN=your-generated-token
-export SITE_TITLE="My Blog"
-export SITE_URL=http://localhost:8000
-
-uvicorn api.main:app --host 0.0.0.0 --port 8000
-```
-
-SQLite taxonomy, local filesystem, no external dependencies. rsync it, git it, tar it. The infrastructure is replaceable. Your words are not.
-
-## Project Structure
+## Architecture
 
 ```
-note2cms/
-├── api/
-│   └── __init__.py          # The 4 endpoints. The whole CMS.
-├── pipeline/
-│   ├── parser.py            # Markdown + frontmatter → structured post
-│   ├── builder_cloud.py     # Renders HTML in memory (cloud mode)
-│   ├── builder.py           # Renders HTML to filesystem (local mode)
-│   ├── taxonomy.py          # SQLite backend
-│   ├── taxonomy_pg.py       # PostgreSQL backend (Leapcell/cloud)
-│   └── deployer.py          # GitHub Pages deployer via API
-├── themes/
-│   └── default/
-│       ├── post.html         # Jinja2 post template
-│       ├── index.html        # Jinja2 index template
-│       └── react/            # React SSR theme (optional)
-│           ├── Post.jsx
-│           ├── Index.jsx
-│           └── theme.css
-├── MANIFESTO.md              # Why this exists
-├── INSTALL.md                # Free-tier deployment guide
-└── README.md                 # You are here
+[Notes App] → POST /publish → FastAPI (FastAPI Cloud)
+                                 ├── SELECT token → Neon (one row)
+                                 ├── Parse Markdown
+                                 ├── Render HTML (Jinja2)
+                                 ├── Fetch taxonomy.json (GitHub API)
+                                 ├── Update taxonomy
+                                 └── Push commit (post + source + index + taxonomy)
+                                     → GitHub Pages (static output)
+                                     → Return permalink
+                                     → Die
 ```
 
-## License
+The server holds nothing. The database holds one row per user. The content lives in the user's repo. The reader hits GitHub Pages directly. The pipeline is a matchstick — it lights, burns, and disappears.
 
-MIT — because your publishing tool shouldn't have strings attached either.
+## What This Is Not
+
+This is not a SaaS. There is no subscription. There is no pricing page. There is no enterprise tier. There is no customer success manager. There is no roadmap driven by revenue targets.
+
+This is a pipeline deployed on free infrastructure that does one thing: turn your Markdown into a blog post and get out of the way.
+
+If you want to self-host, use the `main` branch with your own Leapcell, Docker, or bare-metal deployment. If you want to use the public instance, you're here.
+
+## Clients
+
+The protocol is four endpoints with a bearer token. Anything that speaks HTTP is a client.
+
+| Client | Author | Status |
+|--------|--------|--------|
+| curl | You | Works now |
+| [note2cms-publisher](https://github.com/garrul4ik/note2cms-publisher) | @garrul4ik | Obsidian plugin, v1.0.3 |
+| iOS Shortcuts | You | 5 steps, zero code |
+| Apple Notes → Share Sheet | You | Via Shortcuts |
+| Your favorite HTTP client | You | POST JSON, get permalink |
+
+## Cost
+
+This instance runs on FastAPI Cloud's free tier with a Neon free-tier database. Total infrastructure cost: zero dollars.
+
+Your blog runs on GitHub Pages. Total hosting cost: zero dollars.
+
+A domain name costs twelve dollars a year.
+
+Total cost of self-owned, beautifully themed, permanently archived, SaaSless publishing: **twelve dollars a year.**
 
 ---
 
-*You are not gifting your writings to some dirty SaaS. You own it.*
+## Standing on Shoulders
+
+note2cms contains no original code. Every component was built by someone else, released with conviction, and composed into a pipeline. These are the people whose work makes this possible.
+
+**Sebastian Ramirez** — FastAPI. The framework that gets out of the way. Four endpoints, async-native, type-hinted, zero bloat. The floor this building stands on. FastAPI Cloud — the platform this instance runs on. The framework author's own infrastructure, serving the framework's testament.
+
+**Armin Ronacher** — Jinja2. The template engine that outlived the framework that made it famous. Released under BSD in 2008 because a template engine has no business being locked to a framework. Eighteen years later, it renders eight themes with visual flair on a CMS its author never imagined. A function: data in, HTML out. The purest tool in the stack.
+
+**Tom Christie** — httpx. The async HTTP client that pushes static HTML to GitHub Pages. One `await client.put()` and a blog post is live on the internet. Also: Starlette, the ASGI framework underneath FastAPI. Also: Uvicorn, the server that runs it. Three foundational tools from one person.
+
+**Samuel Colvin** — Pydantic. The validation layer that makes FastAPI's type hints work. note2cms validates one field: `markdown`. Pydantic does the least possible work for the best possible result. That's the highest compliment a validation library can receive.
+
+**Charlie Marsh** — uv and Ruff. The package installer and linter that make Python fast. `fastapi deploy` installs seven dependencies in seconds because uv made dependency resolution a solved problem. The fastest build is the one with nothing to build.
+
+**Marcelo Trylesinski** — Starlette and Uvicorn maintainer. The ASGI server that wakes, serves one publish request, and goes back to sleep. The infrastructure underneath the infrastructure.
+
+**Eric S. Raymond** — "The Cathedral and the Bazaar." The philosophical framework that explains why a stranger built an Obsidian plugin overnight without asking permission. The bazaar model, described in 1997, proven in 2026.
+
+**Guy Steele** — Scheme, the Jargon File, the Lambda Papers. The quiet architect who proved that a language can be tiny and powerful at the same time. The community of people who build small things that work together to create something big.
+
+**Armin Ronacher** (again) — for investing in FastAPI Cloud. The creator of Flask funding the platform built on the framework that replaced Flask. No spite. Just infrastructure lifting infrastructure.
+
+**@garrul4ik** — The first contributor. Built the Obsidian plugin overnight. Proved the bazaar forms around the protocol. Wrote a heroic Russian ode about the project's author, deployed on the Brutalist theme in monospace. The community that arrived before the community was planned.
+
+---
+
+## The Philosophy
+
+I did not invent anything. I composed everything. The composition is the contribution.
+
+Seven libraries. Seven maintainers. Each released with conviction under permissive licenses. Each does one thing, does it well, and does not care what calls it.
+
+I gathered them behind four endpoints and pointed them at a specific problem: turning a note into a blog post without opening a browser.
+
+The architecture is complete. I am afraid to add anything. The hardest commit is the one you do not make.
+
+---
+
+*The money is on the table. I can see it from here. I am not picking it up.*
+
+## License
+
+MIT. Issued with conviction, not from a dropdown menu.
