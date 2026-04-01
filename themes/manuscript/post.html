@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} — {{ site_title }}</title>
+    <meta name="description" content="{{ excerpt }}">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="{{ excerpt }}">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
+    <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,300;1,7..72,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --ink: #1f1c18;
+            --paper: #faf8f3;
+            --cream: #f0ebe0;
+            --margin-red: #c44040;
+            --pencil: #6b6058;
+            --faded: #a89e92;
+            --max-width: 38rem;
+            --margin-line: 4rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #ddd8d0;
+                --paper: #161412;
+                --cream: #1e1b18;
+                --margin-red: #d45050;
+                --pencil: #9a9088;
+                --faded: #4a4440;
+            }
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; }
+
+        body {
+            font-family: 'Literata', 'Palatino', Georgia, serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.8;
+            min-height: 100vh;
+            cursor: default;
+        }
+
+        /* The trick: crosshair cursor on links — like marking up a manuscript */
+        a { cursor: crosshair; }
+
+        /* Margin line — like ruled notebook paper */
+        .manuscript {
+            position: relative;
+            max-width: calc(var(--max-width) + 6rem);
+            margin: 0 auto;
+        }
+
+        .manuscript::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: var(--margin-line);
+            width: 1px;
+            height: 100%;
+            background: var(--margin-red);
+            opacity: 0.2;
+        }
+
+        /* --- Header --- */
+        .post-header {
+            max-width: var(--max-width);
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 5rem 1.5rem 2rem 0;
+        }
+
+        .post-meta {
+            font-family: 'Courier Prime', 'Courier New', monospace;
+            font-size: 0.75rem;
+            color: var(--pencil);
+            margin-bottom: 1.5rem;
+        }
+
+        .post-title {
+            font-size: 2rem;
+            font-weight: 600;
+            line-height: 1.25;
+            margin-bottom: 1rem;
+        }
+
+        /* The trick: title has a faint strikethrough that appears/disappears — like an editor's revision mark */
+        .post-title {
+            position: relative;
+        }
+
+        .post-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .post-tags span {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.7rem;
+            color: var(--pencil);
+            background: var(--cream);
+            padding: 0.15rem 0.5rem;
+        }
+
+        /* --- Content --- */
+        .post-content {
+            max-width: var(--max-width);
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 1rem 1.5rem 4rem 0;
+        }
+
+        .post-content p {
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+            text-indent: 1.5rem;
+        }
+
+        .post-content p:first-child {
+            text-indent: 0;
+        }
+
+        .post-content h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 3rem 0 1rem;
+            text-indent: 0;
+        }
+
+        /* The trick: h2 gets a pencil annotation number in the margin */
+        .post-content h2 {
+            counter-increment: section;
+            position: relative;
+        }
+
+        .post-content h2::before {
+            content: "§" counter(section);
+            position: absolute;
+            left: calc(-2rem - var(--margin-line) + 0.5rem);
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.7rem;
+            color: var(--margin-red);
+            opacity: 0.4;
+            font-weight: 400;
+        }
+
+        .post-content { counter-reset: section; }
+
+        .post-content h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin: 2.5rem 0 0.8rem;
+            text-indent: 0;
+        }
+
+        .post-content h4 {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 2rem 0 0.6rem;
+            color: var(--pencil);
+            text-indent: 0;
+        }
+
+        .post-content a {
+            color: var(--ink);
+            text-decoration: none;
+            background-image: linear-gradient(var(--margin-red), var(--margin-red));
+            background-size: 100% 1px;
+            background-position: 0 100%;
+            background-repeat: no-repeat;
+            transition: background-size 0.2s;
+        }
+
+        .post-content a:hover {
+            background-size: 100% 2px;
+            color: var(--margin-red);
+        }
+
+        .post-content blockquote {
+            border: none;
+            margin: 2rem 0 2rem -1rem;
+            padding: 1rem 1.5rem;
+            background: var(--cream);
+            font-style: italic;
+            font-weight: 400;
+            position: relative;
+            text-indent: 0;
+        }
+
+        /* Pencil bracket in margin */
+        .post-content blockquote::before {
+            content: "❝";
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            font-size: 1.5rem;
+            color: var(--faded);
+            font-style: normal;
+        }
+
+        .post-content blockquote p {
+            margin-bottom: 0.5rem;
+            text-indent: 0;
+        }
+
+        .post-content blockquote p:last-child { margin-bottom: 0; }
+
+        .post-content ul, .post-content ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .post-content li {
+            margin-bottom: 0.4rem;
+            font-weight: 400;
+            text-indent: 0;
+        }
+
+        .post-content code {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.88rem;
+            background: var(--cream);
+            padding: 1px 4px;
+        }
+
+        .post-content pre {
+            font-family: 'Courier Prime', monospace;
+            background: var(--cream);
+            padding: 1.2rem 1.5rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            border-left: 3px solid var(--faded);
+            text-indent: 0;
+        }
+
+        .post-content pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.82rem;
+            line-height: 1.7;
+        }
+
+        .post-content img {
+            max-width: 100%;
+            height: auto;
+            margin: 2rem 0;
+        }
+
+        .post-content hr {
+            border: none;
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .post-content hr::after {
+            content: "* * *";
+            color: var(--pencil);
+            font-size: 0.8rem;
+            letter-spacing: 0.5rem;
+        }
+
+        .post-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            font-size: 0.9rem;
+        }
+
+        .post-content th, .post-content td {
+            padding: 0.5rem 0.8rem;
+            border-bottom: 1px solid var(--faded);
+            text-align: left;
+            text-indent: 0;
+        }
+
+        .post-content th {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--pencil);
+        }
+
+        /* --- Footer --- */
+        .post-footer {
+            max-width: var(--max-width);
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 2rem 1.5rem 5rem 0;
+            border-top: 1px solid var(--faded);
+        }
+
+        .post-footer a {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.75rem;
+            color: var(--pencil);
+            text-decoration: none;
+            background: none;
+        }
+
+        .post-footer a:hover { color: var(--margin-red); }
+
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+
+            .manuscript::before { display: none; }
+
+            .post-header,
+            .post-content,
+            .post-footer {
+                margin-left: 0;
+                padding-left: 1.2rem;
+                padding-right: 1.2rem;
+            }
+
+            .post-content h2::before { display: none; }
+            .post-title { font-size: 1.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="manuscript">
+        <article>
+            <header class="post-header">
+                <div class="post-meta">
+                    <time datetime="{{ date_iso }}">{{ date }}</time> · {{ reading_time }} min read
+                </div>
+                <h1 class="post-title">{{ title }}</h1>
+                {% if tags %}
+                <div class="post-tags">
+                    {% for tag in tags %}
+                    <span>{{ tag }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </header>
+
+            <div class="post-content">
+                {{ content }}
+            </div>
+        </article>
+
+        <footer class="post-footer">
+            <a href="{{ site_url }}/posts/">← All posts</a>
+        </footer>
+    </div>
+</body>
+</html>

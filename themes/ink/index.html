@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&display=swap');
+
+        :root {
+            --ink: #1a1714;
+            --paper: #f5f0e8;
+            --wash: #e8e0d0;
+            --vermillion: #cc3333;
+            --stone: #6b5f52;
+            --faded: #9a8f80;
+            --max-width: 40rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #e0d8cc;
+                --paper: #171412;
+                --wash: #221e1a;
+                --vermillion: #e04040;
+                --stone: #9a8e80;
+                --faded: #5a5248;
+            }
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 18px; }
+
+        body {
+            font-family: 'Cormorant Garamond', 'Noto Sans JP', Georgia, serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        .index-wrapper { position: relative; z-index: 1; }
+
+        .index-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem 3rem;
+            text-align: center;
+        }
+
+        .index-title {
+            font-size: 2.4rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+        }
+
+        .index-subtitle {
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--stone);
+        }
+
+        /* Decorative mark below header */
+        .header-mark {
+            text-align: center;
+            padding: 1.5rem 0 0;
+            color: var(--vermillion);
+            font-size: 0.8rem;
+            opacity: 0.4;
+        }
+
+        .divider {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .divider hr {
+            border: none;
+            height: 1px;
+            background: var(--wash);
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+
+        .post-item {
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--wash);
+        }
+
+        .post-item-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .post-item-meta {
+            font-size: 0.68rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: 0.5rem;
+        }
+
+        .post-item-meta .sep {
+            margin: 0 0.5rem;
+            color: var(--faded);
+        }
+
+        .post-item-title {
+            font-size: 1.5rem;
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 0.5rem;
+            transition: color 0.3s;
+            position: relative;
+            display: inline;
+        }
+
+        /* The trick: vermillion dot appears after title on hover, pulses like wet ink */
+        .post-item-title::after {
+            content: " ●";
+            color: var(--vermillion);
+            opacity: 0;
+            font-size: 0.5em;
+            vertical-align: middle;
+            transition: opacity 0.3s;
+        }
+
+        .post-item-link:hover .post-item-title::after {
+            opacity: 0.6;
+            animation: inkpulse 2s ease-in-out infinite;
+        }
+
+        @keyframes inkpulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--vermillion);
+        }
+
+        .post-item-excerpt {
+            font-size: 0.92rem;
+            font-weight: 400;
+            color: var(--stone);
+            line-height: 1.6;
+            margin-top: 0.5rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .post-item-tags span {
+            font-size: 0.6rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--faded);
+        }
+
+        .post-item-tags span::before { content: "〈"; }
+        .post-item-tags span::after { content: "〉"; }
+
+        /* --- Empty --- */
+        .empty-state {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+            text-align: center;
+            color: var(--stone);
+            font-weight: 400;
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem 5rem;
+            text-align: center;
+        }
+
+        .index-footer p {
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--faded);
+        }
+
+        @media (max-width: 640px) {
+            html { font-size: 16px; }
+            .index-header { padding: 4rem 1.2rem 2rem; }
+            .post-list { padding: 1rem 1.2rem 3rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="index-wrapper">
+        <header class="index-header">
+            <h1 class="index-title">{{ site_title }}</h1>
+            <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+            <div class="header-mark">◆</div>
+        </header>
+
+        <div class="divider"><hr></div>
+
+        {% if posts %}
+        <ul class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <a href="{{ post.permalink }}" class="post-item-link">
+                    <div class="post-item-meta">
+                        <time datetime="{{ post.date }}">{{ post.display_date }}</time>
+                        <span class="sep">·</span>
+                        <span>{{ post.reading_time }} min read</span>
+                    </div>
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="post-item-tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <p>The page is blank. The ink awaits.</p>
+        </div>
+        {% endif %}
+
+        <footer class="index-footer">
+            <p>note2cms — past-browser publishing protocol</p>
+        </footer>
+    </div>
+</body>
+</html>

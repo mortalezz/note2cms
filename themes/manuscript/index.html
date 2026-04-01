@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,300;0,7..72,400;0,7..72,500;0,7..72,600;1,7..72,300;1,7..72,400&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+        :root {
+            --ink: #1f1c18;
+            --paper: #faf8f3;
+            --cream: #f0ebe0;
+            --margin-red: #c44040;
+            --pencil: #6b6058;
+            --faded: #a89e92;
+            --max-width: 38rem;
+            --margin-line: 4rem;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --ink: #ddd8d0;
+                --paper: #161412;
+                --cream: #1e1b18;
+                --margin-red: #d45050;
+                --pencil: #9a9088;
+                --faded: #4a4440;
+            }
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; }
+
+        body {
+            font-family: 'Literata', 'Palatino', Georgia, serif;
+            background: var(--paper);
+            color: var(--ink);
+            line-height: 1.8;
+            min-height: 100vh;
+        }
+
+        a { cursor: crosshair; }
+
+        .manuscript {
+            position: relative;
+            max-width: calc(var(--max-width) + 6rem);
+            margin: 0 auto;
+        }
+
+        .manuscript::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: var(--margin-line);
+            width: 1px;
+            height: 100%;
+            background: var(--margin-red);
+            opacity: 0.2;
+        }
+
+        .index-header {
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 5rem 1.5rem 2rem 0;
+        }
+
+        .index-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+        }
+
+        .index-subtitle {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.75rem;
+            color: var(--pencil);
+        }
+
+        .divider {
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding-right: 1.5rem;
+        }
+
+        .divider hr {
+            border: none;
+            height: 1px;
+            background: var(--faded);
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 0.5rem 1.5rem 4rem 0;
+            counter-reset: entries;
+        }
+
+        .post-item {
+            padding: 1.8rem 0;
+            border-bottom: 1px solid var(--cream);
+            position: relative;
+            counter-increment: entries;
+        }
+
+        /* The trick: entry number appears in the margin like a handwritten annotation */
+        .post-item::before {
+            content: counter(entries);
+            position: absolute;
+            left: calc(-2rem - var(--margin-line) + 0.8rem);
+            top: 2rem;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.75rem;
+            color: var(--margin-red);
+            opacity: 0.35;
+            transition: opacity 0.3s;
+        }
+
+        .post-item:hover::before {
+            opacity: 0.8;
+        }
+
+        .post-item-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .post-item-meta {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.7rem;
+            color: var(--pencil);
+            margin-bottom: 0.4rem;
+        }
+
+        .post-item-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 0.4rem;
+            transition: color 0.2s;
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--margin-red);
+        }
+
+        .post-item-excerpt {
+            font-size: 0.9rem;
+            font-weight: 300;
+            color: var(--pencil);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .post-item-tags span {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.62rem;
+            color: var(--pencil);
+            background: var(--cream);
+            padding: 0.1rem 0.4rem;
+        }
+
+        /* --- Empty --- */
+        .empty-state {
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 5rem 1.5rem;
+            color: var(--pencil);
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            margin: 0 0 0 calc(var(--margin-line) + 2rem);
+            padding: 2rem 1.5rem 4rem 0;
+        }
+
+        .index-footer p {
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.68rem;
+            color: var(--faded);
+        }
+
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+
+            .manuscript::before { display: none; }
+
+            .index-header,
+            .post-list,
+            .empty-state,
+            .index-footer,
+            .divider {
+                margin-left: 0;
+                padding-left: 1.2rem;
+                padding-right: 1.2rem;
+            }
+
+            .post-item::before { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="manuscript">
+        <header class="index-header">
+            <h1 class="index-title">{{ site_title }}</h1>
+            <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+        </header>
+
+        <div class="divider"><hr></div>
+
+        {% if posts %}
+        <ol class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <a href="{{ post.permalink }}" class="post-item-link">
+                    <div class="post-item-meta">
+                        <time datetime="{{ post.date }}">{{ post.display_date }}</time> · {{ post.reading_time }} min read
+                    </div>
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="post-item-tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <div class="empty-state">
+            <p>The manuscript is blank. Begin writing.</p>
+        </div>
+        {% endif %}
+
+        <footer class="index-footer">
+            <p>note2cms — past-browser publishing protocol</p>
+        </footer>
+    </div>
+</body>
+</html>

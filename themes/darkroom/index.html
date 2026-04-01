@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ site_title }}</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,500;1,8..60,300;1,8..60,400&family=DM+Mono:wght@400;500&display=swap');
+
+        :root {
+            --bg: #111111;
+            --surface: #1a1a1a;
+            --amber: #d4943a;
+            --amber-dim: #a07030;
+            --amber-glow: rgba(212, 148, 58, 0.08);
+            --text: #c8c0b4;
+            --text-dim: #706860;
+            --border: #2a2520;
+            --max-width: 42rem;
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { font-size: 17px; }
+
+        body {
+            font-family: 'Source Serif 4', Georgia, serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.75;
+            min-height: 100vh;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+        }
+
+        .index-wrapper { position: relative; z-index: 1; }
+
+        .safelight {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--amber) 20%, var(--amber) 80%, transparent 100%);
+            opacity: 0.6;
+        }
+
+        .index-header {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 5rem 1.5rem 2.5rem;
+        }
+
+        .index-title {
+            font-size: 2rem;
+            font-weight: 300;
+            color: var(--amber);
+            margin-bottom: 0.4rem;
+        }
+
+        .index-subtitle {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
+        .divider {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        .divider hr {
+            border: none;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* --- Post List --- */
+        .post-list {
+            list-style: none;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0.5rem 1.5rem 4rem;
+        }
+
+        .post-item {
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+
+        .post-item-link {
+            display: block;
+            padding: 1.8rem 0 1.8rem 2.5rem;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.3s;
+        }
+
+        /* The trick: amber exposure bar on the left — height based on reading time */
+        .post-item-link::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 1.8rem;
+            width: 3px;
+            height: 0;
+            background: var(--amber);
+            opacity: 0.2;
+            transition: opacity 0.4s, box-shadow 0.4s;
+        }
+
+        /* Reading time fills: 1min=15%, up to ~10min=100% */
+        {% for post in posts %}
+        .post-item:nth-child({{ loop.index }}) .post-item-link::before {
+            height: min(calc({{ post.reading_time }} * 12%), 90%);
+        }
+        {% endfor %}
+
+        .post-item-link:hover::before {
+            opacity: 0.9;
+            box-shadow: 0 0 8px var(--amber-glow), 0 0 2px var(--amber-dim);
+        }
+
+        .post-item-link:hover {
+            background: var(--amber-glow);
+        }
+
+        .post-item-meta {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            margin-bottom: 0.4rem;
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .post-item-title {
+            font-size: 1.3rem;
+            font-weight: 400;
+            line-height: 1.3;
+            margin-bottom: 0.4rem;
+            transition: color 0.3s;
+        }
+
+        .post-item-link:hover .post-item-title {
+            color: var(--amber);
+        }
+
+        .post-item-excerpt {
+            font-size: 0.88rem;
+            font-weight: 300;
+            color: var(--text-dim);
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .post-item-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .post-item-tags span {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.6rem;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+
+        /* --- Empty --- */
+        .empty-state {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 6rem 1.5rem;
+            text-align: center;
+            color: var(--text-dim);
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        /* --- Footer --- */
+        .index-footer {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 2rem 1.5rem 4rem;
+        }
+
+        .index-footer p {
+            font-family: 'DM Mono', monospace;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+            opacity: 0.5;
+        }
+
+        @media (max-width: 640px) {
+            html { font-size: 15px; }
+            .index-header { padding: 3.5rem 1.2rem 2rem; }
+            .post-list { padding: 0.5rem 1.2rem 3rem; }
+            .post-item-link { padding-left: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="index-wrapper">
+        <div class="safelight"></div>
+
+        <header class="index-header">
+            <h1 class="index-title">{{ site_title }}</h1>
+            <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
+        </header>
+
+        <div class="divider"><hr></div>
+
+        {% if posts %}
+        <ul class="post-list">
+            {% for post in posts %}
+            <li class="post-item">
+                <a href="{{ post.permalink }}" class="post-item-link">
+                    <div class="post-item-meta">
+                        <time datetime="{{ post.date }}">{{ post.display_date }}</time>
+                        <span>{{ post.reading_time }} min</span>
+                    </div>
+                    <h2 class="post-item-title">{{ post.title }}</h2>
+                    <p class="post-item-excerpt">{{ post.excerpt }}</p>
+                    {% if post.tags %}
+                    <div class="post-item-tags">
+                        {% for tag in post.tags %}
+                        <span>{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+            <p>Darkroom empty. No prints developing.</p>
+        </div>
+        {% endif %}
+
+        <footer class="index-footer">
+            <p>note2cms — past-browser publishing protocol</p>
+        </footer>
+    </div>
+</body>
+</html>

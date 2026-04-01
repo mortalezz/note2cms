@@ -1,21 +1,39 @@
 # Theming Guide
 
-A theme is two HTML files. That's it.
+A theme is two HTML files. One personality. Zero JavaScript.
 
-## How Themes Work
+## The Three Layers
 
-note2cms ships with two themes:
+A note2cms theme operates on three layers:
 
-- **default** — warm serif typography, Newsreader font, editorial feel, dark mode support
-- **swiss** — Swiss Modernist / Bauhaus inspired, uppercase grid typography, primary color accents, geometric elements
+**Layer 1: Data Contract** — the theme receives props (title, date, content, tags) and returns HTML. This is the functional layer. Every theme system has this. It is necessary and it is boring.
 
-Your active theme is set by the `ACTIVE_THEME` environment variable. Changing it and redeploying switches your entire blog's visual identity.
+**Layer 2: Visual Identity** — fonts, colors, spacing, layout. The static appearance when the page loads. This is what most theme systems consider the entire job.
+
+**Layer 3: Behavioral Signature** — the one trick. A hidden visual flair that rewards interaction. A hover state that surprises. A load animation that sets the mood. This is what no other theme system provides, and it is what makes the difference between a page that exists and a page that someone remembers.
+
+When building a theme, think about all three layers. The third one is what makes yours unforgettable.
+
+## Available Themes
+
+note2cms ships with eight themes. Each has a distinct personality and a hidden trick.
+
+| Theme | Aesthetic | The Trick |
+|---|---|---|
+| `default` | Warm editorial serif, Newsreader on parchment | Dark mode via `prefers-color-scheme` — the first theme, the one that proves the concept |
+| `swiss` | Bauhaus geometry, Instrument Sans, primary colors, rigid grid | Numbered post counter in the index, red/blue/yellow geometric accents as fixed elements |
+| `brutalist` | IBM Plex Mono, 4px black borders, zero decoration | Binary hover inversion — entire index rows flip black-to-white instantly, no transition |
+| `terminal` | Fira Code, phosphor green on dark, CRT scanlines | Headers prefixed with `##`, footer says `$ cd ../posts/`, scanline overlay via repeating gradient |
+| `vaporwave` | Outfit font, pink-to-purple gradients, floating radial glows | Cards lift on hover with gradient title reveal and purple box shadow |
+| `ink` | Cormorant Garamond, rice paper texture, vermillion accents | Brushstroke animation unfurls under the title on load; index titles get a pulsing ink dot on hover |
+| `darkroom` | Source Serif, amber safelight on deep black, vignette | Images "develop" like photographs — start dark with sepia, fade into full visibility; h2 bars glow on hover |
+| `manuscript` | Literata + Courier Prime, cream paper, red margin line | Section numbers appear in the margin like a reviewer's pencil marks; cursor changes to crosshair over links |
 
 ## Switching Themes
 
-1. In your Leapcell dashboard (or `.env` file for self-hosted), change `ACTIVE_THEME`:
+1. In your Leapcell dashboard (or `.env` for self-hosted), change `ACTIVE_THEME`:
    ```
-   ACTIVE_THEME=swiss
+   ACTIVE_THEME=darkroom
    ```
 
 2. **Redeploy** the service (Leapcell: "Save and Rebuild" button)
@@ -28,7 +46,7 @@ Your active theme is set by the `ACTIVE_THEME` environment variable. Changing it
 
 4. Done. Every post is now rendered with the new theme.
 
-To switch back, change `ACTIVE_THEME` to `default`, redeploy, rebuild.
+One environment variable. One curl. Whole blog redesigned.
 
 ## Creating Your Own Theme
 
@@ -131,27 +149,63 @@ Minimal example:
 </html>
 ```
 
-That's a complete, working theme. Everything else — fonts, colors, layout, animations, geometric decorations — is CSS you add to make it yours.
+That's a complete, working theme. Everything else — fonts, colors, layout, animations, the one trick — is CSS you add to make it yours.
+
+## The Visual Flair Principle
+
+When designing your theme's trick, follow this principle: **the trick must be earned by context.**
+
+A hover effect on an already-animated page is noise. A hover effect on a deliberately still page is an event. The power of the trick comes from what the rest of the design chose not to do.
+
+Guidelines:
+
+**One trick per theme.** Two tricks compete. One trick defines. Pick the moment you want the reader to remember and design everything else to support it.
+
+**CSS only.** No JavaScript. The trick must survive in static HTML served from a CDN. CSS animations, transitions, pseudo-elements, counters, and `prefers-color-scheme` are your toolkit. They are more than enough.
+
+**Earn it through restraint.** If your theme is minimal, the trick should be the one moment of visual intensity. If your theme is bold, the trick should be the one moment of unexpected subtlety. The trick works by contrast with the design's baseline personality.
+
+**Match the metaphor.** The Ink theme's trick is a brushstroke because the metaphor is calligraphy. The Darkroom's trick is a developing photograph because the metaphor is a darkroom. The Manuscript's trick is margin annotations because the metaphor is a reviewed paper. The trick should feel like it belongs to the world the theme creates.
+
+**Test on mobile.** Some tricks (hover states) don't work on touch devices. That's fine — the trick is a bonus, not a requirement. The theme must be beautiful without the trick. The trick rewards desktop readers without punishing mobile ones.
+
+## Dark Mode
+
+If your theme has a light background, add dark mode support. Use CSS variables and `prefers-color-scheme`:
+
+```css
+:root {
+    --ink: #1a1a1a;
+    --paper: #faf9f7;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ink: #e8e4df;
+        --paper: #191816;
+    }
+}
+```
+
+All CSS that references `var(--ink)` and `var(--paper)` automatically switches. Dark-on-light themes (Terminal, Darkroom, Vaporwave) don't need this — they're already dark.
 
 ## Tips
 
-**Fonts.** Google Fonts works great — just add a `<link>` or `@import` in your `<head>`. The default theme uses Newsreader, the Swiss theme uses Instrument Sans.
+**Fonts.** Google Fonts works great — add a `<link>` or `@import` in your `<style>`. Pair a distinctive display font with a readable body font. Avoid Inter, Roboto, and system defaults.
 
-**Dark mode.** Use `@media (prefers-color-scheme: dark)` with CSS variables. See `themes/default/post.html` for an example.
-
-**OG tags.** Add Open Graph meta tags so your posts look good when shared on social media:
+**OG tags.** Add Open Graph meta tags so posts look good when shared:
 ```html
 <meta property="og:title" content="{{ title }}">
 <meta property="og:description" content="{{ excerpt }}">
 <meta property="og:type" content="article">
 ```
 
-**No JavaScript required.** Your theme outputs static HTML. You can add JS if you want (analytics, animations), but the reader doesn't need it. Keep it light.
+**No JavaScript required.** The reader doesn't need it. You can add analytics or progressive enhancement, but the page must be fully functional without it.
 
-**Test locally.** Self-host note2cms on your machine, set `ACTIVE_THEME=your-theme-name`, publish a test post, open the HTML in your browser. Iterate until it looks right, then push.
+**Test locally.** Self-host note2cms, set `ACTIVE_THEME=your-theme-name`, publish a test post, iterate in the browser. When it's right, push and deploy.
 
 ## Contributing Themes
 
-Built a theme you're proud of? Add it to `themes/your-theme-name/` and open a pull request. The community can switch to it with one environment variable.
+Built a theme you're proud of? Add it to `themes/your-theme-name/` and open a pull request. The community switches to it with one environment variable.
 
-Every theme is two files. Every theme uses the same variables. Every theme produces static HTML. The pipeline doesn't care what your CSS looks like. Go wild.
+Two files. One personality. Zero JavaScript. Every bit of life considered. Go wild.
