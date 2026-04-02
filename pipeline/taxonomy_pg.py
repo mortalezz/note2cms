@@ -53,6 +53,18 @@ class PostgresTaxonomyDB:
                 await cur.execute("""
                     CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(date DESC)
                 """)
+                await cur.execute("""
+                    CREATE TABLE IF NOT EXISTS tenants (
+                        token VARCHAR(64) PRIMARY KEY,
+                        github_repo VARCHAR(255) NOT NULL,
+                        github_token VARCHAR(255) NOT NULL,
+                        github_branch VARCHAR(64) DEFAULT 'gh-pages',
+                        site_url VARCHAR(255) NOT NULL,
+                        site_title VARCHAR(255) DEFAULT 'Write where you think',
+                        active_theme VARCHAR(64) DEFAULT 'terminal',
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                """)
 
     async def _retrying(self, fn, *, op_name: str):
         """
@@ -159,6 +171,20 @@ class PostgresTaxonomyDB:
                     return [self._row_to_dict(row) for row in rows]
 
         return await self._retrying(_op, op_name="list_by_tag")
+
+    async def get_tenant_by_token(self, token: str) -> Optional[dict]:
+        """Get a tenant by their token."""
+        async def _op():
+            async with self._pool.connection() as conn:
+                await conn.set_autocommit(True)
+                async with conn.cursor(row_factory=dict_row) as cur:
+                    await cur.execute("SELECT * FROM tenants WHERE token = %s", (token,))
+                    row = await cur.fetchone()
+                    if row is None:
+                        return None
+                    return dict(row)
+
+        return await self._retrying(_op, op_name="get_tenant_by_token")
 
     async def close(self):
         """Close the connection pool."""
