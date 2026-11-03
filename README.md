@@ -90,22 +90,22 @@ note2cms runs for free. The entire stack:
 
 | Component       | Free Tier                          |
 |-----------------|------------------------------------|
-| **API Runtime** | [Leapcell](https://leapcell.io)    |
-| **Database**    | Leapcell PostgreSQL                |
+| **API Runtime** | [FastAPI Cloud](https://fastapicloud.com) |
+| **Database**    | [Neon](https://neon.tech) PostgreSQL |
 | **Static Host** | GitHub Pages / Cloudflare Pages    |
 | **SSL**         | Automatic via GitHub Pages         |
 | **CDN**         | Automatic via GitHub Pages         |
 
 **Total cost: a domain name. Twelve dollars a year.**
 
-See **[INSTALL.md](INSTALL.md)** for the complete step-by-step deployment guide.
+See **[INSTALL.md](INSTALL.md)** for the complete step-by-step installation guide, or **[MIGRATION.md](MIGRATION.md)** if you are migrating from Leapcell.
 
 ## Publishing
 
 From the command line:
 
 ```bash
-curl -X POST https://your-api.leapcell.dev/publish \
+curl -X POST https://your-api.fastapicloud.dev/publish \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"markdown": "---\ntitle: Hello World\ntags: [first]\n---\n\nMy first post."}'
@@ -115,7 +115,7 @@ From a Markdown file:
 
 ```bash
 jq -Rs '{markdown: .}' post.md | curl -X POST \
-  https://your-api.leapcell.dev/publish \
+  https://your-api.fastapicloud.dev/publish \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d @-
@@ -130,7 +130,7 @@ From Android: a Share Intent to any HTTP client app.
 Want to edit a post? Get your original Markdown back:
 
 ```bash
-curl https://your-api.leapcell.dev/posts/hello-world/source \
+curl https://your-api.fastapicloud.dev/posts/hello-world/source \
   -H "Authorization: Bearer YOUR_TOKEN" > post.md
 ```
 

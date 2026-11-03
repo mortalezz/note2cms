@@ -311,6 +311,33 @@ async def rebuild_all(_token: str = Depends(verify_token)):
 
 
 # ---------------------------------------------------------------------------
+# Migration: POST /import-from-blog — recover posts directly from GitHub Pages
+# ---------------------------------------------------------------------------
+
+@app.post("/import-from-blog")
+async def import_from_blog(_token: str = Depends(verify_token)):
+    """
+    One-click import of already published posts from GitHub Pages into this database.
+    Does not require knowing the DATABASE_URL.
+    """
+    from pipeline.migrator import get_post_slugs, fetch_and_parse_post
+
+    repo = GITHUB_REPO or "garrul4ik/blog"
+    branch = GITHUB_BRANCH or "gh-pages"
+    slugs = get_post_slugs(repo, branch, GITHUB_TOKEN)
+    imported = 0
+
+    for slug in slugs:
+        post_data = fetch_and_parse_post(repo, branch, slug, GITHUB_TOKEN)
+        post = parse_markdown(post_data["markdown"])
+        await _store_source(post.slug, post_data["markdown"])
+        await db.upsert_post(post)
+        imported += 1
+
+    return {"status": "ok", "imported": imported, "repo": repo}
+
+
+# ---------------------------------------------------------------------------
 # Static file serving (local mode only)
 # ---------------------------------------------------------------------------
 
