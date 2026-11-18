@@ -77,6 +77,13 @@ Your post template receives these variables:
 | `excerpt` | string | `"First paragraph of the post..."` |
 | `site_title` | string | `"My Blog"` |
 | `site_url` | string | `"https://example.github.io/blog"` |
+| `site_lang` | string | `"en"` or `"ru"` |
+| `i18n` | dict | Localized UI strings |
+| `og_image` | string | Cover / first image / generated OG PNG URL |
+| `prev_post` / `next_post` | dict or None | Neighbor posts (`slug`, `title`, `permalink`) |
+| `related_posts` | list of dicts | Up to 3 posts sharing tags |
+| `series_info` | dict or None | Series TOC (`name`, `current_index`, `total`, `posts`) |
+| `nav_pages` | list of dicts | Static pages (`type: page`) |
 
 Minimal example:
 
@@ -111,6 +118,24 @@ Your index template receives these variables:
 | `posts` | list of dicts | All posts, newest first |
 | `site_title` | string | Your blog name |
 | `site_url` | string | Your blog URL |
+| `site_lang` | string | `"en"` or `"ru"` |
+| `i18n` | dict | Localized UI strings |
+| `pagination` | PageSlice or None | Pagination metadata (`current` via `page_number`, `total_pages`, `newer_url`, `older_url`, `pages`) |
+| `active_tag` | string or None | Set on `/posts/tags/{tag}/` pages |
+| `tags_overview` | bool | True on `/posts/tags/` overview |
+| `all_tags` | dict | `{tag: count}` mapping when `tags_overview` is True |
+| `search_page` | bool | True on `/posts/search/` |
+| `nav_pages` | list of dicts | Static pages (`type: page`) |
+
+### Shared Partials (`themes/_shared/`)
+
+All themes can include reusable zero-JS components from `themes/_shared/`:
+- `_shared/components.css` — pure-CSS scroll-snap carousel, `:target` lightbox, pagination, tag cloud, series TOC, prev/next cards (inherits theme variables automatically)
+- `_shared/head_meta.html` — RSS/Atom links, `og:image`, `twitter:card`, `rel="prev/next"`
+- `_shared/site_nav.html` — navigation bar and tag filter banner
+- `_shared/pagination.html` — page navigation bar
+- `_shared/series_box.html` & `_shared/post_extras.html` — series TOC, prev/next, related posts
+- `_shared/tags_overview.html` & `_shared/search_page.html` — tags overview and optional static search page
 
 Each post in the `posts` list contains:
 

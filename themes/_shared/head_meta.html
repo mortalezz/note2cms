@@ -1,0 +1,14 @@
+<link rel="alternate" type="application/rss+xml" title="{{ site_title }} RSS" href="{{ site_url }}/feed.xml">
+<link rel="alternate" type="application/atom+xml" title="{{ site_title }} Atom" href="{{ site_url }}/atom.xml">
+{% if og_image %}
+<meta property="og:image" content="{{ og_image }}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ og_image }}">
+{% else %}
+<meta name="twitter:card" content="summary">
+{% endif %}
+{% if pagination %}
+{% if pagination.prev_url %}<link rel="prev" href="{{ pagination.prev_url }}">{% endif %}
+{% if pagination.next_url %}<link rel="next" href="{{ pagination.next_url }}">{% endif %}
+<link rel="canonical" href="{{ pagination.url }}">
+{% endif %}

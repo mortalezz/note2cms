@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -300,6 +300,8 @@
             }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <!-- Bauhaus geometric elements -->
@@ -315,14 +317,19 @@
 
         <div class="index-divider"><hr></div>
 
-        {% if posts %}
+        {% include "_shared/site_nav.html" %}
+        {% if tags_overview %}
+        {% include "_shared/tags_overview.html" %}
+        {% elif search_page %}
+        {% include "_shared/search_page.html" %}
+        {% elif posts %}
         <ol class="post-list">
             {% for post in posts %}
             <li class="post-item">
                 <a href="{{ post.permalink }}" class="post-item-link">
                     <div class="post-item-date-col">
                         <time datetime="{{ post.date }}">{{ post.display_date }}</time>
-                        <span class="reading-time">{{ post.reading_time }} min</span>
+                        <span class="reading-time">{{ post.reading_time }} {{ i18n.min_short if i18n else "min" }}</span>
                     </div>
                     <div class="post-item-content">
                         <h2 class="post-item-title">{{ post.title }}</h2>
@@ -341,11 +348,12 @@
         </ol>
         {% else %}
         <div class="empty-state">
-            <p>No posts yet.</p>
-            <p>Push some Markdown to get started.</p>
+            <p>{{ i18n.no_posts if i18n else "No posts yet." }}</p>
+            <p>{{ i18n.push_hint if i18n else "Push some Markdown to get started." }}</p>
             <code>curl -X POST /publish</code>
         </div>
         {% endif %}
+        {% include "_shared/pagination.html" %}
 
         <footer class="index-footer">
             <p>Published with note2cms — the past-browser publishing protocol</p>

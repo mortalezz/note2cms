@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -203,6 +203,8 @@
             .post-item-link { padding-left: 1.5rem; }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <div class="index-wrapper">
@@ -215,14 +217,19 @@
 
         <div class="divider"><hr></div>
 
-        {% if posts %}
+        {% include "_shared/site_nav.html" %}
+        {% if tags_overview %}
+        {% include "_shared/tags_overview.html" %}
+        {% elif search_page %}
+        {% include "_shared/search_page.html" %}
+        {% elif posts %}
         <ul class="post-list">
             {% for post in posts %}
             <li class="post-item">
                 <a href="{{ post.permalink }}" class="post-item-link">
                     <div class="post-item-meta">
                         <time datetime="{{ post.date }}">{{ post.display_date }}</time>
-                        <span>{{ post.reading_time }} min</span>
+                        <span>{{ post.reading_time }} {{ i18n.min_short if i18n else "min" }}</span>
                     </div>
                     <h2 class="post-item-title">{{ post.title }}</h2>
                     <p class="post-item-excerpt">{{ post.excerpt }}</p>
@@ -242,6 +249,7 @@
             <p>Darkroom empty. No prints developing.</p>
         </div>
         {% endif %}
+        {% include "_shared/pagination.html" %}
 
         <footer class="index-footer">
             <p>note2cms — past-browser publishing protocol</p>

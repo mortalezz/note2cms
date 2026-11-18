@@ -1,0 +1,9 @@
+{
+  "id": "note2cms",
+  "name": "note2cms Publisher",
+  "version": "0.3.0",
+  "minAppVersion": "1.0.0",
+  "description": "Publish Obsidian notes and attached images directly to note2cms.",
+  "author": "note2cms",
+  "isDesktopOnly": false
+}

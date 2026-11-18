@@ -1,0 +1,34 @@
+{% if prev_post or next_post or related_posts %}
+<aside class="n2c-post-extras" aria-label="Post navigation">
+    {% if prev_post or next_post %}
+    <nav class="n2c-post-nav">
+        {% if prev_post %}
+        <a href="{{ prev_post.permalink }}" class="n2c-post-nav-item" rel="prev">
+            <span class="n2c-post-nav-label">← {{ i18n.previous_post if i18n else "Previous" }}</span>
+            <span class="n2c-post-nav-title">{{ prev_post.title }}</span>
+        </a>
+        {% endif %}
+        {% if next_post %}
+        <a href="{{ next_post.permalink }}" class="n2c-post-nav-item" rel="next">
+            <span class="n2c-post-nav-label">{{ i18n.next_post if i18n else "Next" }} →</span>
+            <span class="n2c-post-nav-title">{{ next_post.title }}</span>
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% if related_posts %}
+    <div class="n2c-related">
+        <h3>{{ i18n.related_posts if i18n else "Related posts" }}</h3>
+        <ul>
+            {% for rel in related_posts %}
+            <li>
+                <a href="{{ rel.permalink }}">{{ rel.title }}</a>
+                <span class="n2c-related-date">{{ rel.display_date }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</aside>
+{% endif %}

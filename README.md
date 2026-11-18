@@ -44,14 +44,25 @@ No admin panel. No browser-based editor. No login screen. No monthly fee. No ven
 
 ## The API
 
-| Method   | Endpoint               | Description                    |
-|----------|------------------------|--------------------------------|
-| `POST`   | `/publish`             | Push Markdown, get a permalink |
-| `GET`    | `/posts/{slug}/source` | Get original Markdown back     |
-| `DELETE` | `/posts/{slug}`        | Remove a post                  |
-| `GET`    | `/posts`               | List all posts                 |
+| Method   | Endpoint               | Description                                |
+|----------|------------------------|--------------------------------------------|
+| `POST`   | `/publish`             | Push Markdown (+ optional base64 `assets`) |
+| `POST`   | `/media`               | Upload & process a single image asset      |
+| `GET`    | `/posts/{slug}/source` | Get original Markdown back                 |
+| `DELETE` | `/posts/{slug}`        | Remove a post and its assets               |
+| `GET`    | `/posts`               | List posts (supports `tag`, `limit`, `offset`) |
+| `GET`    | `/tags`                | List all tags with post counts             |
+| `GET`    | `/search?q=...`        | Search posts by title, tags, and body      |
+| `POST`   | `/rebuild`             | Re-render the entire site in one commit    |
 
-That's the whole CMS.
+Static outputs generated on publish:
+- **Stable O(1) Pagination**: `/posts/` (newest) and permanent `/posts/page/{n}/` archive pages (`PAGINATION_MODE=stable`, `POSTS_PER_PAGE=10`).
+- **Zero-JS Image Carousel**: Consecutive images in a paragraph, `![[obsidian.jpg]]` embeds, or `::: gallery ... :::` blocks become CSS scroll-snap carousels with `:target` lightbox. Uploaded images have EXIF/GPS stripped and are resized to `<= 1 MP` with responsive WebP `srcset`.
+- **Tag Archives**: `/posts/tags/` and paginated `/posts/tags/{tag}/`.
+- **Feeds & SEO**: `/feed.xml` (RSS 2.0), `/atom.xml` (Atom 1.0), `/sitemap.xml`, `/robots.txt`, and auto-generated 1200×630 theme-matched OG cards (`og.png`) for text-only posts.
+- **Internal Navigation**: Previous/Next posts, `series:` / `series_order:` series TOC, related posts, and static pages (`type: page`).
+- **Optional Static Search**: Set `SEARCH=true` to generate `/search-index.json` and `/posts/search/`.
+- **Localization**: Set `SITE_LANG=ru` or `en` for localized dates and UI labels.
 
 ## Theme Usage
 
@@ -164,30 +175,47 @@ uvicorn api.main:app --host 0.0.0.0 --port 8000
 
 SQLite taxonomy, local filesystem, no external dependencies. rsync it, git it, tar it. The infrastructure is replaceable. Your words are not.
 
+## Publishing Clients
+
+- **CLI (`n2c`)**: Installed as `n2c` via `pip install -e .` (`cli/n2c.py`).
+  - `n2c config --url https://your-api --token YOUR_TOKEN`
+  - `n2c publish note.md --write-back` (automatically discovers and uploads referenced local images & `![[embeds]]`)
+  - `n2c sync ./vault/blog` (publishes only modified `.md` files and assets)
+  - `n2c pull <slug>`, `n2c list`, `n2c delete <slug>`, `n2c rebuild`
+- **Obsidian Plugin**: Located in [clients/obsidian-note2cms/](clients/obsidian-note2cms/README.md) — ready-to-use `manifest.json` + pre-bundled `main.js`.
+
 ## Project Structure
 
 ```
 note2cms/
 ├── api/
-│   └── __init__.py          # The 4 endpoints. The whole CMS.
+│   └── __init__.py          # FastAPI endpoints & incremental publish orchestrator
+├── cli/
+│   └── n2c.py               # Official CLI client (n2c)
+├── clients/
+│   └── obsidian-note2cms/   # Obsidian Community Plugin (publish, pull, delete, rebuild)
 ├── pipeline/
 │   ├── parser.py            # Markdown + frontmatter → structured post
-│   ├── builder_cloud.py     # Renders HTML in memory (cloud mode)
-│   ├── builder.py           # Renders HTML to filesystem (local mode)
+│   ├── media.py             # EXIF/GPS strip, 1 MP cap, WebP srcset
+│   ├── markdown_ext.py      # Obsidian embeds & zero-JS CSS carousel
+│   ├── paginator.py         # Stable (O(1)) and classic pagination
+│   ├── og.py                # 1200x630 Pillow OG social card generator
+│   ├── feeds.py             # RSS 2.0, Atom 1.0, sitemap.xml, robots.txt
+│   ├── search.py            # Static search index + API ranking
+│   ├── i18n.py              # Cross-platform date & UI localization (en/ru)
+│   ├── source_store.py      # Abstract Markdown source storage (FS / Postgres)
+│   ├── builder_cloud.py     # Unified Jinja2 renderer
+│   ├── builder.py           # Local wrapper for rebuild.py
 │   ├── taxonomy.py          # SQLite backend
-│   ├── taxonomy_pg.py       # PostgreSQL backend (Leapcell/cloud)
-│   └── deployer.py          # GitHub Pages deployer via API
+│   ├── taxonomy_pg.py       # PostgreSQL backend
+│   └── deployer.py          # Single-commit GitHub Data API & LocalDeployer
 ├── themes/
-│   └── default/
-│       ├── post.html         # Jinja2 post template
-│       ├── index.html        # Jinja2 index template
-│       └── react/            # React SSR theme (optional)
-│           ├── Post.jsx
-│           ├── Index.jsx
-│           └── theme.css
-├── MANIFESTO.md              # Why this exists
-├── INSTALL.md                # Free-tier deployment guide
-└── README.md                 # You are here
+│   ├── _shared/             # Shared zero-JS carousel, pagination, nav & extras
+│   └── default/             # Plus 20 more Jinja2 themes
+├── tests/                   # Pytest test suite
+├── MANIFESTO.md
+├── INSTALL.md
+└── README.md
 ```
 
 ## License

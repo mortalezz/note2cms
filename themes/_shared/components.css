@@ -1,0 +1,554 @@
+/* note2cms shared components — inherits each theme's palette via CSS fallbacks */
+:root {
+    --n2c-bg: var(--bg, var(--paper, var(--white, #faf9f7)));
+    --n2c-surface: var(--surface, var(--cream, var(--code-bg, var(--gray-100, rgba(128, 128, 128, 0.08)))));
+    --n2c-fg: var(--text, var(--ink, var(--black, #1a1a1a)));
+    --n2c-muted: var(--muted, var(--dim, var(--text-dim, var(--pencil, var(--stone, var(--gray-500, #6b6560))))));
+    --n2c-accent: var(--accent, var(--vermillion, var(--red, var(--green, var(--pink, var(--amber, var(--margin-red, #c45d3e)))))));
+    --n2c-rule: var(--rule, var(--border, var(--gray-300, var(--wash, rgba(128, 128, 128, 0.28)))));
+}
+
+/* --- Site Navigation & Tag Filter Banner --- */
+.n2c-site-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin: 1rem 0 2rem;
+    padding: 0.65rem 0;
+    border-top: 1px solid var(--n2c-rule);
+    border-bottom: 1px solid var(--n2c-rule);
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+}
+
+.n2c-site-nav a {
+    color: var(--n2c-muted);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.n2c-site-nav a:hover,
+.n2c-site-nav a[aria-current="page"] {
+    color: var(--n2c-accent);
+}
+
+.n2c-nav-spacer {
+    margin-left: auto;
+}
+
+.n2c-tag-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0 0 1.75rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--n2c-rule);
+    background: var(--n2c-surface);
+    border-radius: 4px;
+    font-size: 0.92rem;
+}
+
+.n2c-tag-banner a {
+    color: var(--n2c-accent);
+    text-decoration: none;
+}
+
+.n2c-tag-link {
+    text-decoration: none;
+    color: inherit;
+    display: inline-block;
+}
+
+.n2c-tag-link:hover span {
+    border-color: var(--n2c-accent);
+    opacity: 0.85;
+}
+
+/* --- Tags Cloud Page --- */
+.n2c-tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: 1.5rem 0 3rem;
+}
+
+.n2c-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--n2c-rule);
+    background: var(--n2c-surface);
+    color: var(--n2c-fg);
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.92rem;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.n2c-tag-pill:hover {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
+}
+
+.n2c-tag-count {
+    font-size: 0.78em;
+    color: var(--n2c-muted);
+}
+
+/* --- Pagination (Zero-JS) --- */
+.n2c-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 2.5rem 0 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--n2c-rule);
+    font-size: 0.9rem;
+}
+
+.n2c-page-numbers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.n2c-page-link,
+.n2c-page-current,
+.n2c-page-ellipsis,
+.n2c-page-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+.n2c-page-link,
+.n2c-page-nav {
+    color: var(--n2c-fg);
+    border: 1px solid var(--n2c-rule);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.n2c-page-link:hover,
+.n2c-page-nav:hover {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
+}
+
+.n2c-page-current {
+    background: var(--n2c-accent);
+    color: #ffffff;
+    border: 1px solid var(--n2c-accent);
+    font-weight: 600;
+}
+
+.n2c-page-ellipsis {
+    color: var(--n2c-muted);
+}
+
+.n2c-page-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* --- Pure-CSS Scroll-Snap Image Carousel (Strictly Zero JS) --- */
+.n2c-carousel {
+    position: relative;
+    margin: 2rem 0;
+}
+
+.n2c-carousel-track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    gap: 0.75rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 6px;
+    background: var(--n2c-surface);
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+}
+
+.n2c-carousel-track:focus-visible {
+    outline: 2px solid var(--n2c-accent);
+    outline-offset: 2px;
+}
+
+.n2c-carousel-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.n2c-lightbox-trigger {
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+    text-decoration: none;
+}
+
+.n2c-carousel-slide img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 72vh;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.n2c-carousel[style*="--n2c-ratio"] .n2c-carousel-slide img {
+    aspect-ratio: var(--n2c-ratio);
+    object-fit: cover;
+}
+
+.n2c-slide-caption {
+    padding: 0.5rem 0.75rem 0.65rem;
+    font-size: 0.85rem;
+    color: var(--n2c-muted);
+    text-align: center;
+}
+
+.n2c-carousel-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 0.65rem;
+}
+
+.n2c-carousel-dot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.65rem;
+    height: 1.65rem;
+    padding: 0 0.4rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    color: var(--n2c-muted);
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.n2c-carousel-dot:hover,
+.n2c-carousel-dot:focus-visible {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
+}
+
+.n2c-carousel-caption {
+    margin-top: 0.45rem;
+    font-size: 0.82rem;
+    color: var(--n2c-muted);
+    text-align: center;
+}
+
+/* Progressive pure-CSS scroll buttons for supporting browsers */
+@supports selector(::scroll-button(left)) {
+    .n2c-carousel-track::scroll-button(left),
+    .n2c-carousel-track::scroll-button(right) {
+        background: var(--n2c-surface);
+        color: var(--n2c-fg);
+        border: 1px solid var(--n2c-rule);
+        border-radius: 999px;
+        width: 2.1rem;
+        height: 2.1rem;
+        cursor: pointer;
+        opacity: 0.85;
+    }
+    .n2c-carousel-track::scroll-button(left) {
+        content: "‹";
+    }
+    .n2c-carousel-track::scroll-button(right) {
+        content: "›";
+    }
+}
+
+/* Pure-CSS :target Lightbox */
+.n2c-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.n2c-lightbox:target {
+    display: flex;
+}
+
+.n2c-lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    cursor: zoom-out;
+}
+
+.n2c-lightbox-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 92vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.n2c-lightbox-inner img {
+    max-width: 88vw;
+    max-height: 80vh;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.n2c-lightbox-close,
+.n2c-lightbox-prev,
+.n2c-lightbox-next {
+    position: fixed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 999px;
+    background: rgba(25, 25, 25, 0.82);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    text-decoration: none;
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.n2c-lightbox-close {
+    top: 1rem;
+    right: 1rem;
+}
+
+.n2c-lightbox-prev {
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.n2c-lightbox-next {
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.n2c-lightbox-caption {
+    margin-top: 0.75rem;
+    color: #e8e8e8;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .n2c-carousel-track {
+        scroll-behavior: auto;
+    }
+}
+
+@media print {
+    .n2c-carousel-track {
+        display: block;
+        overflow: visible;
+        border: none;
+    }
+    .n2c-carousel-slide {
+        margin-bottom: 1rem;
+        page-break-inside: avoid;
+    }
+    .n2c-carousel-nav,
+    .n2c-lightbox {
+        display: none !important;
+    }
+}
+
+/* --- Series Box, Prev/Next Post Navigation, Related Posts --- */
+.n2c-series {
+    margin: 0 0 2rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--n2c-rule);
+    border-left: 3px solid var(--n2c-accent);
+    background: var(--n2c-surface);
+    border-radius: 4px;
+    font-size: 0.92rem;
+}
+
+.n2c-series summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--n2c-fg);
+}
+
+.n2c-series ol {
+    margin: 0.75rem 0 0 1.25rem;
+    padding: 0;
+}
+
+.n2c-series li {
+    margin: 0.3rem 0;
+}
+
+.n2c-series li a {
+    color: var(--n2c-accent);
+    text-decoration: none;
+}
+
+.n2c-series li a:hover {
+    text-decoration: underline;
+}
+
+.n2c-post-extras {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--n2c-rule);
+}
+
+.n2c-post-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.n2c-post-nav-item {
+    display: block;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 4px;
+    background: var(--n2c-surface);
+    text-decoration: none;
+    color: var(--n2c-fg);
+    transition: border-color 0.15s ease;
+}
+
+.n2c-post-nav-item:hover {
+    border-color: var(--n2c-accent);
+}
+
+.n2c-post-nav-label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--n2c-muted);
+    margin-bottom: 0.25rem;
+}
+
+.n2c-post-nav-title {
+    display: block;
+    font-weight: 500;
+    color: var(--n2c-accent);
+}
+
+.n2c-related {
+    margin-top: 1.5rem;
+}
+
+.n2c-related h3 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--n2c-muted);
+    margin-bottom: 0.75rem;
+}
+
+.n2c-related ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.n2c-related li {
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--n2c-rule);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: 0.92rem;
+}
+
+.n2c-related li a {
+    color: var(--n2c-fg);
+    text-decoration: none;
+}
+
+.n2c-related li a:hover {
+    color: var(--n2c-accent);
+}
+
+.n2c-related-date {
+    color: var(--n2c-muted);
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+/* --- Search Page --- */
+.n2c-search-box {
+    margin: 1.5rem 0 2.5rem;
+}
+
+.n2c-search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 4px;
+    background: var(--n2c-surface);
+    color: var(--n2c-fg);
+    margin-bottom: 1.25rem;
+}
+
+.n2c-search-input:focus {
+    outline: 2px solid var(--n2c-accent);
+    border-color: var(--n2c-accent);
+}
+
+.n2c-search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.n2c-search-results li {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--n2c-rule);
+}
+
+.n2c-search-results a {
+    color: var(--n2c-accent);
+    text-decoration: none;
+    font-size: 1.15rem;
+    font-weight: 500;
+}
+
+.n2c-search-results p {
+    margin: 0.35rem 0 0;
+    color: var(--n2c-muted);
+    font-size: 0.9rem;
+}

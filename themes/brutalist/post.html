@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -245,6 +245,8 @@
             .post-footer { padding: 1.5rem; }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <article>
@@ -257,19 +259,21 @@
             {% if tags %}
             <div class="post-tags">
                 {% for tag in tags %}
-                <span>{{ tag }}</span>
+                <a href="{{ site_url }}/posts/tags/{{ tag | urlencode }}/" class="n2c-tag-link"><span>{{ tag }}</span></a>
                 {% endfor %}
             </div>
             {% endif %}
         </header>
 
         <div class="post-content">
-            {{ content }}
+            {% include "_shared/series_box.html" %}
+{{ content }}
+{% include "_shared/post_extras.html" %}
         </div>
     </article>
 
     <footer class="post-footer">
-        <a href="{{ site_url }}/posts/">← All Posts</a>
+        <a href="{{ site_url }}/posts/">← {{ i18n.all_posts if i18n else "All Posts" }}</a>
     </footer>
 </body>
 </html>

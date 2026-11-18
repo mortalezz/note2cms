@@ -1,0 +1,19 @@
+{% if series_info %}
+<details class="n2c-series" open>
+    <summary>
+        {{ i18n.series_label if i18n else "Series" }}: {{ series_info.name }}
+        ({{ (i18n.series_part if i18n else "Part {order} of {total}").format(order=series_info.current_index, total=series_info.total) }})
+    </summary>
+    <ol>
+        {% for item in series_info.posts %}
+        <li>
+            {% if item.is_current %}
+            <strong>{{ item.title }}</strong>
+            {% else %}
+            <a href="{{ item.permalink }}">{{ item.title }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ol>
+</details>
+{% endif %}

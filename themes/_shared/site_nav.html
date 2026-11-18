@@ -1,0 +1,17 @@
+<nav class="n2c-site-nav" aria-label="Site navigation">
+    <a href="{{ site_url }}/posts/"{% if not active_tag and not tags_overview and not search_page %} aria-current="page"{% endif %}>{{ i18n.all_posts if i18n else "All posts" }}</a>
+    <a href="{{ site_url }}/posts/tags/"{% if tags_overview or active_tag %} aria-current="page"{% endif %}>{{ i18n.tags_title if i18n else "Tags" }}</a>
+    {% for nav_page in nav_pages | default([]) %}
+    <a href="{{ nav_page.permalink }}">{{ nav_page.title }}</a>
+    {% endfor %}
+    {% if search_enabled %}
+    <a href="{{ site_url }}/posts/search/"{% if search_page %} aria-current="page"{% endif %}>{{ i18n.search_title if i18n else "Search" }}</a>
+    {% endif %}
+    <a href="{{ site_url }}/feed.xml" class="n2c-nav-spacer">{{ i18n.rss_feed if i18n else "RSS" }}</a>
+</nav>
+{% if active_tag %}
+<div class="n2c-tag-banner">
+    <strong>{{ (i18n.posts_tagged if i18n else "Tagged: #{tag}").format(tag=active_tag) }}</strong>
+    <a href="{{ site_url }}/posts/">← {{ i18n.all_posts if i18n else "All posts" }}</a>
+</div>
+{% endif %}

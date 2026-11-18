@@ -1,0 +1,56 @@
+<section class="n2c-search-box" aria-label="{{ i18n.search_title if i18n else 'Search' }}">
+    <h2>{{ i18n.search_title if i18n else "Search" }}</h2>
+    <input
+        type="search"
+        id="n2c-search-input"
+        class="n2c-search-input"
+        placeholder="{{ i18n.search_placeholder if i18n else 'Search posts...' }}"
+        aria-label="{{ i18n.search_title if i18n else 'Search' }}"
+        autofocus
+    >
+    <ul id="n2c-search-results" class="n2c-search-results"></ul>
+    <p id="n2c-search-empty" style="display:none; color: var(--n2c-muted);">{{ i18n.search_no_results if i18n else "No matching posts found." }}</p>
+</section>
+<script>
+(function () {
+    const input = document.getElementById("n2c-search-input");
+    const list = document.getElementById("n2c-search-results");
+    const empty = document.getElementById("n2c-search-empty");
+    let items = null;
+
+    async function ensureIndex() {
+        if (items !== null) return items;
+        const resp = await fetch("{{ site_url }}/search-index.json");
+        items = resp.ok ? await resp.json() : [];
+        return items;
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, function (c) {
+            return {"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;"}[c];
+        });
+    }
+
+    async function runSearch() {
+        const q = input.value.trim().toLowerCase();
+        list.innerHTML = "";
+        empty.style.display = "none";
+        if (!q) return;
+        const data = await ensureIndex();
+        const tokens = q.split(/\s+/).filter(Boolean);
+        const matches = data.filter(function (item) {
+            const hay = (item.title + " " + (item.tags || []).join(" ") + " " + item.excerpt + " " + item.body).toLowerCase();
+            return tokens.every(function (t) { return hay.indexOf(t) !== -1; });
+        });
+        if (!matches.length) {
+            empty.style.display = "block";
+            return;
+        }
+        list.innerHTML = matches.slice(0, 30).map(function (m) {
+            return '<li><a href="' + escapeHtml(m.url) + '">' + escapeHtml(m.title) + '</a><p>' + escapeHtml(m.excerpt) + '</p></li>';
+        }).join("");
+    }
+
+    input.addEventListener("input", runSearch);
+})();
+</script>
