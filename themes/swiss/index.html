@@ -105,7 +105,8 @@
         }
 
         /* --- Divider --- */
-        .index-divider {
+        .index-divider,
+        .index-section {
             max-width: var(--col-width);
             margin: 0 auto;
             padding: 0 calc(var(--grid-unit) * 3);
@@ -291,7 +292,8 @@
                 margin-top: 0;
             }
 
-            .index-divider {
+            .index-divider,
+            .index-section {
                 padding: 0 calc(var(--grid-unit) * 2);
             }
 
@@ -317,11 +319,17 @@
 
         <div class="index-divider"><hr></div>
 
-        {% include "_shared/site_nav.html" %}
+        <div class="index-section">
+            {% include "_shared/site_nav.html" %}
+        </div>
         {% if tags_overview %}
-        {% include "_shared/tags_overview.html" %}
+        <div class="index-section">
+            {% include "_shared/tags_overview.html" %}
+        </div>
         {% elif search_page %}
-        {% include "_shared/search_page.html" %}
+        <div class="index-section">
+            {% include "_shared/search_page.html" %}
+        </div>
         {% elif posts %}
         <ol class="post-list">
             {% for post in posts %}
@@ -353,7 +361,11 @@
             <code>curl -X POST /publish</code>
         </div>
         {% endif %}
-        {% include "_shared/pagination.html" %}
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="index-section">
+            {% include "_shared/pagination.html" %}
+        </div>
+        {% endif %}
 
         <footer class="index-footer">
             <p>Published with note2cms — the past-browser publishing protocol</p>

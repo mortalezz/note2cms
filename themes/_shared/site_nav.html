@@ -7,7 +7,7 @@
     {% if search_enabled %}
     <a href="{{ site_url }}/posts/search/"{% if search_page %} aria-current="page"{% endif %}>{{ i18n.search_title if i18n else "Search" }}</a>
     {% endif %}
-    <a href="{{ site_url }}/feed.xml" class="n2c-nav-spacer">{{ i18n.rss_feed if i18n else "RSS" }}</a>
+    <a href="{{ site_url }}/feed.xml">{{ i18n.rss_feed if i18n else "RSS" }}</a>
 </nav>
 {% if active_tag %}
 <div class="n2c-tag-banner">

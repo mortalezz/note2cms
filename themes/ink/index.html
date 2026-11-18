@@ -81,7 +81,8 @@
             opacity: 0.4;
         }
 
-        .divider {
+        .divider,
+        .index-section {
             max-width: var(--max-width);
             margin: 0 auto;
             padding: 0 1.5rem;
@@ -212,6 +213,7 @@
         @media (max-width: 640px) {
             html { font-size: 16px; }
             .index-header { padding: 4rem 1.2rem 2rem; }
+            .divider, .index-section { padding: 0 1.2rem; }
             .post-list { padding: 1rem 1.2rem 3rem; }
         }
     </style>
@@ -228,11 +230,17 @@
 
         <div class="divider"><hr></div>
 
-        {% include "_shared/site_nav.html" %}
+        <div class="index-section">
+            {% include "_shared/site_nav.html" %}
+        </div>
         {% if tags_overview %}
-        {% include "_shared/tags_overview.html" %}
+        <div class="index-section">
+            {% include "_shared/tags_overview.html" %}
+        </div>
         {% elif search_page %}
-        {% include "_shared/search_page.html" %}
+        <div class="index-section">
+            {% include "_shared/search_page.html" %}
+        </div>
         {% elif posts %}
         <ul class="post-list">
             {% for post in posts %}
@@ -261,7 +269,11 @@
             <p>The page is blank. The ink awaits.</p>
         </div>
         {% endif %}
-        {% include "_shared/pagination.html" %}
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="index-section">
+            {% include "_shared/pagination.html" %}
+        </div>
+        {% endif %}
 
         <footer class="index-footer">
             <p>note2cms — past-browser publishing protocol</p>

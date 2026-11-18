@@ -119,6 +119,21 @@ async def test_all_themes_render_post_and_paginated_index(theme_name: str):
             idx_html = builder.render_index_slice(slices[-1], pinned_post=pinned_item)
             assert f'<html lang="{lang}">' in idx_html
             assert ('&#34;Quotes&#34;' in idx_html or '&quot;Quotes&quot;' in idx_html)
+            assert 'class="n2c-site-nav"' in idx_html
+            assert 'n2c-nav-spacer' not in idx_html
+            assert 'justify-content: center;' in idx_html
+            assert 'min-height: 44px;' in idx_html
+            if theme_name in {
+                "brutalist",
+                "brutalist2",
+                "darkroom",
+                "ink",
+                "manuscript",
+                "swiss",
+                "terminal",
+                "vaporwave",
+            }:
+                assert '<div class="index-section">' in idx_html
             assert 'class="n2c-pinned-card"' in idx_html
             assert 'class="n2c-pinned-compact"' not in idx_html
             if n > 10:

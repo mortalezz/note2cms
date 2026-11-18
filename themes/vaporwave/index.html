@@ -70,6 +70,12 @@
             color: var(--text-dim);
         }
 
+        .index-section {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
         /* --- Post List --- */
         .post-list {
             list-style: none;
@@ -218,6 +224,7 @@
             html { font-size: 15px; }
             .index-header { padding: 3.5rem 1.2rem 2rem; }
             .index-title { font-size: 2.2rem; }
+            .index-section { padding: 0 1.2rem; }
             .post-list { padding: 0 1.2rem 2rem; }
             .post-item-link { padding: 1.5rem; }
         }
@@ -233,11 +240,17 @@
         <p class="index-subtitle">Write where you think. Publish where they look. Own everything in between.</p>
     </header>
 
-    {% include "_shared/site_nav.html" %}
+    <div class="index-section">
+        {% include "_shared/site_nav.html" %}
+    </div>
         {% if tags_overview %}
+    <div class="index-section">
         {% include "_shared/tags_overview.html" %}
+    </div>
         {% elif search_page %}
+    <div class="index-section">
         {% include "_shared/search_page.html" %}
+    </div>
         {% elif posts %}
     <ul class="post-list">
         {% for post in posts %}
@@ -267,7 +280,11 @@
         <p><code>curl -X POST /publish</code></p>
     </div>
     {% endif %}
+    {% if pagination and pagination.total_pages > 1 %}
+    <div class="index-section">
         {% include "_shared/pagination.html" %}
+    </div>
+    {% endif %}
 
     <footer class="index-footer">
         <p>note2cms — past-browser publishing protocol</p>

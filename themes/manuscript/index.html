@@ -77,7 +77,8 @@
             color: var(--pencil);
         }
 
-        .divider {
+        .divider,
+        .index-section {
             margin: 0 0 0 calc(var(--margin-line) + 2rem);
             padding-right: 1.5rem;
         }
@@ -197,7 +198,8 @@
             .post-list,
             .empty-state,
             .index-footer,
-            .divider {
+            .divider,
+            .index-section {
                 margin-left: 0;
                 padding-left: 1.2rem;
                 padding-right: 1.2rem;
@@ -218,11 +220,17 @@
 
         <div class="divider"><hr></div>
 
-        {% include "_shared/site_nav.html" %}
+        <div class="index-section">
+            {% include "_shared/site_nav.html" %}
+        </div>
         {% if tags_overview %}
-        {% include "_shared/tags_overview.html" %}
+        <div class="index-section">
+            {% include "_shared/tags_overview.html" %}
+        </div>
         {% elif search_page %}
-        {% include "_shared/search_page.html" %}
+        <div class="index-section">
+            {% include "_shared/search_page.html" %}
+        </div>
         {% elif posts %}
         <ol class="post-list">
             {% for post in posts %}
@@ -249,7 +257,11 @@
             <p>The manuscript is blank. Begin writing.</p>
         </div>
         {% endif %}
-        {% include "_shared/pagination.html" %}
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="index-section">
+            {% include "_shared/pagination.html" %}
+        </div>
+        {% endif %}
 
         <footer class="index-footer">
             <p>note2cms — past-browser publishing protocol</p>
