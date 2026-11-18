@@ -91,11 +91,19 @@
 | `DATABASE_URL` | Neon PostgreSQL URI from Step 3 |
 | `SITE_TITLE` | Your blog name (e.g., `stenAgram`) |
 | `SITE_URL` | `https://YOUR_USERNAME.github.io/blog` (no trailing slash!) |
-| `ACTIVE_THEME` | `default` |
+| `ACTIVE_THEME` | `default` (or any of the 21 themes in `themes/`) |
 | `GITHUB_TOKEN` | GitHub PAT from Step 2 |
 | `GITHUB_REPO` | `YOUR_USERNAME/blog` |
 | `GITHUB_BRANCH` | `gh-pages` |
 | `DEPLOY_TARGET` | `github_pages` |
+| `SITE_LANG` | Optional UI & date language: `en` (default) or `ru` |
+| `POSTS_PER_PAGE` | Optional posts per page (default `10`) |
+| `PAGINATION_MODE` | Optional `stable` (default, O(1) archive URLs) or `classic` |
+| `SEARCH` | Optional `true` to generate static `/search-index.json` & `/posts/search/` |
+| `GALLERY_AUTO` | Optional `true` (default) to auto-convert image paragraphs into zero-JS carousels |
+| `MAX_IMAGE_MP` | Optional max image size in megapixels (default `1.0`) |
+| `FEED_FULL_TEXT` | Optional `true` (default) to include full HTML bodies in RSS/Atom feeds |
+| `NAV_PAGES` | Optional comma-separated slugs of `type: page` notes to display in nav |
 
 FastAPI Cloud will provide your live backend URL (e.g., `https://note2cms-xxxx.fastapicloud.dev`).
 
@@ -103,7 +111,7 @@ FastAPI Cloud will provide your live backend URL (e.g., `https://note2cms-xxxx.f
 
 ## Step 5: Migrate Existing Posts from GitHub Pages (One-time)
 
-If you have already published posts on GitHub Pages and need to restore them into Neon PostgreSQL:
+If you have already published posts on GitHub Pages and need to restore them into Neon PostgreSQL, either call `POST /import-from-blog` (via Swagger UI `/docs` or `curl` with Bearer `API_TOKEN`) or run locally:
 
 ```bash
 cd c:\_dev\note2cms

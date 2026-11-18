@@ -126,11 +126,19 @@
 | `DATABASE_URL` | *(Автоматически добавлено интеграцией Neon)* |
 | `SITE_TITLE` | Название блога (например: `Мой Блог`) |
 | `SITE_URL` | Адрес вашего блога: `https://YOUR_USERNAME.github.io/blog` *(строго без слэша на конце!)* |
-| `ACTIVE_THEME` | `default` (или любая из папки `themes/`, например: `swiss`, `brutalist`, `terminal`) |
+| `ACTIVE_THEME` | `default` (или любая из 21 темы в `themes/`, например: `swiss`, `brutalist2`, `terminal`) |
 | `GITHUB_TOKEN` | Токен из Шага 3 (`ghp_...` или `github_pat_...`) |
 | `GITHUB_REPO` | `YOUR_USERNAME/blog` |
 | `GITHUB_BRANCH` | `gh-pages` |
 | `DEPLOY_TARGET` | `github_pages` |
+| `SITE_LANG` | Опционально: язык интерфейса и дат — `en` (по умолчанию) или `ru` |
+| `POSTS_PER_PAGE` | Опционально: количество постов на странице (по умолчанию `10`) |
+| `PAGINATION_MODE` | Опционально: `stable` (по умолчанию, O(1)) или `classic` |
+| `SEARCH` | Опционально: `true` для генерации статического поиска `/posts/search/` и `/search-index.json` |
+| `GALLERY_AUTO` | Опционально: `true` (по умолчанию) для авто-карусели подряд идущих картинок (без JS) |
+| `MAX_IMAGE_MP` | Опционально: лимит размера картинок в мегапикселях (по умолчанию `1.0`) |
+| `FEED_FULL_TEXT` | Опционально: `true` (по умолчанию) для полного текста постов в RSS/Atom |
+| `NAV_PAGES` | Опционально: список slug статических страниц (`type: page`) через запятую |
 
 ---
 

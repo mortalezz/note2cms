@@ -16,35 +16,42 @@ When building a theme, think about all three layers. The third one is what makes
 
 ## Available Themes
 
-note2cms ships with eight themes. Each has a distinct personality and a hidden trick.
+note2cms ships with **21 themes** across two families — 9 bespoke editorial/experimental themes and 12 Obsidian-inspired themes.
+
+### Editorial & Experimental Themes
 
 | Theme | Aesthetic | The Trick |
 |---|---|---|
 | `default` | Warm editorial serif, Newsreader on parchment | Dark mode via `prefers-color-scheme` — the first theme, the one that proves the concept |
 | `swiss` | Bauhaus geometry, Instrument Sans, primary colors, rigid grid | Numbered post counter in the index, red/blue/yellow geometric accents as fixed elements |
 | `brutalist` | IBM Plex Mono, 4px black borders, zero decoration | Binary hover inversion — entire index rows flip black-to-white instantly, no transition |
+| `brutalist2` | High-contrast brutalist mono with interactive accents | Title kinetic hover and subtle click ripple feedback |
 | `terminal` | Fira Code, phosphor green on dark, CRT scanlines | Headers prefixed with `##`, footer says `$ cd ../posts/`, scanline overlay via repeating gradient |
 | `vaporwave` | Outfit font, pink-to-purple gradients, floating radial glows | Cards lift on hover with gradient title reveal and purple box shadow |
 | `ink` | Cormorant Garamond, rice paper texture, vermillion accents | Brushstroke animation unfurls under the title on load; index titles get a pulsing ink dot on hover |
 | `darkroom` | Source Serif, amber safelight on deep black, vignette | Images "develop" like photographs — start dark with sepia, fade into full visibility; h2 bars glow on hover |
 | `manuscript` | Literata + Courier Prime, cream paper, red margin line | Section numbers appear in the margin like a reviewer's pencil marks; cursor changes to crosshair over links |
 
+### Obsidian-Inspired Themes
+
+`80s-Neon`, `abyssalobsidian`, `AnuPpuccin`, `arsmagna`, `autotape`, `Blue Topaz`, `GDCT`, `GDCT_Dark`, `Obsidian Nord`, `Obsidian-Ayu`, `Obsidian-Charcoal`, `Typewriter`
+
 ## Switching Themes
 
-1. In your Leapcell dashboard (or `.env` for self-hosted), change `ACTIVE_THEME`:
+1. In your FastAPI Cloud dashboard (`Environment Variables`, or `.env` for self-hosted), change `ACTIVE_THEME`:
    ```
    ACTIVE_THEME=darkroom
    ```
 
-2. **Redeploy** the service (Leapcell: "Save and Rebuild" button)
+2. **Deploy / restart** the service if needed (`fastapi deploy`).
 
-3. Rebuild all posts with the new theme:
+3. Rebuild all posts with the new theme in a single atomic commit:
    ```bash
-   curl -X POST https://YOUR_LEAPCELL_URL/rebuild \
+   curl -X POST https://YOUR_API_URL/rebuild \
      -H "Authorization: Bearer YOUR_TOKEN"
    ```
 
-4. Done. Every post is now rendered with the new theme.
+4. Done. Every post, index page, tag archive, and OG card is now rendered with the new theme.
 
 One environment variable. One curl. Whole blog redesigned.
 
