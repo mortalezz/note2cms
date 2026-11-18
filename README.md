@@ -182,7 +182,7 @@ SQLite taxonomy, local filesystem, no external dependencies. rsync it, git it, t
   - `n2c publish note.md --write-back` (automatically discovers and uploads referenced local images & `![[embeds]]`)
   - `n2c sync ./vault/blog` (publishes only modified `.md` files and assets)
   - `n2c pull <slug>`, `n2c list`, `n2c delete <slug>`, `n2c rebuild`
-- **Obsidian Plugin**: Located in [clients/obsidian-note2cms/](clients/obsidian-note2cms/README.md) — ready-to-use `manifest.json` + pre-bundled `main.js`.
+- **Obsidian Plugin**: [garrul4ik/note2cms-publisher](https://github.com/garrul4ik/note2cms-publisher) — dedicated Obsidian plugin repository (publish, image/carousel bundling, preflight, offline queue, rebuild).
 
 ## Project Structure
 
@@ -192,8 +192,6 @@ note2cms/
 │   └── __init__.py          # FastAPI endpoints & incremental publish orchestrator
 ├── cli/
 │   └── n2c.py               # Official CLI client (n2c)
-├── clients/
-│   └── obsidian-note2cms/   # Obsidian Community Plugin (publish, pull, delete, rebuild)
 ├── pipeline/
 │   ├── parser.py            # Markdown + frontmatter → structured post
 │   ├── media.py             # EXIF/GPS strip, 1 MP cap, WebP srcset
