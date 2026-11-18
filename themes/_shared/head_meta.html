@@ -12,3 +12,6 @@
 {% if pagination.next_url %}<link rel="next" href="{{ pagination.next_url }}">{% endif %}
 <link rel="canonical" href="{{ pagination.url }}">
 {% endif %}
+{% if pinned %}
+<meta name="n2c:pinned" content="true">
+{% endif %}

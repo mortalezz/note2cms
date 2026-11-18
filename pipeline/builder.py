@@ -111,6 +111,7 @@ class BuildPipeline:
                     "excerpt": p.excerpt,
                     "series": p.series or "",
                     "series_order": p.series_order,
+                    "pinned": p.pinned,
                 }
                 for p in parsed_posts
                 if p.post_type == "post"

@@ -322,3 +322,171 @@ async def test_local_build_pipeline_rebuild_all(tmp_path):
     assert (static_dir / "index.html").exists()
     assert (static_dir / "assets" / "first" / "og.png").exists()
 
+
+def test_pinned_post_pagination_tags_and_share_buttons(configured_client):
+    client, _, _ = configured_client
+    headers = {"Authorization": "Bearer secret-test-token"}
+
+    # Static page must not show share bar
+    r_about = client.post(
+        "/publish",
+        json={"markdown": "---\ntitle: About\ntype: page\npinned: true\n---\n\nBio."},
+        headers=headers,
+    )
+    assert r_about.status_code == 200
+    assert 'class="n2c-share-bar"' not in client.get("/posts/about/").text
+
+    # Publish an older pinned post (2026-01-01) and two newer posts (2026-03-01, 2026-03-02)
+    r_pin1 = client.post(
+        "/publish",
+        json={
+            "markdown": (
+                "---\ntitle: Start Here\ndate: 2026-01-01\ntags: [intro]\npinned: true\n---\n\n"
+                "Welcome guide."
+            )
+        },
+        headers=headers,
+    )
+    assert r_pin1.status_code == 200
+
+    for idx in (1, 2):
+        r = client.post(
+            "/publish",
+            json={
+                "markdown": (
+                    f"---\ntitle: Fresh {idx}\ndate: 2026-03-0{idx}\ntags: [news]\n---\n\nBody {idx}."
+                )
+            },
+            headers=headers,
+        )
+        assert r.status_code == 200
+
+    # Single post page has share bar with localized buttons and zero <script>
+    post_html = client.get("/posts/fresh-1/").text
+    assert 'class="n2c-share-bar"' in post_html
+    assert "Поделиться" in post_html
+    assert "Скопировать ссылку" in post_html
+    assert "<script" not in post_html.lower()
+
+    # Main index shows full pinned card AND keeps newest post on index without shifting stable page/1
+    idx_html = client.get("/posts/").text
+    assert 'class="n2c-pinned-card"' in idx_html
+    assert "Закреплено" in idx_html
+    assert "Start Here" in idx_html
+    assert "Fresh 2" in idx_html
+
+    # Archive page/1 shows compact pinned banner (not full card) + chronological older posts
+    page1_html = client.get("/posts/page/1/").text
+    assert 'class="n2c-pinned-compact"' in page1_html
+    assert 'class="n2c-pinned-card"' not in page1_html
+    assert "Start Here" in page1_html
+    assert "Fresh 1" in page1_html
+
+    # Tag page (even for a tag not on the pinned post) shows compact pinned banner
+    tag_html = client.get("/posts/tags/news/").text
+    assert 'class="n2c-pinned-compact"' in tag_html
+    assert 'class="n2c-pinned-card"' not in tag_html
+    assert "Start Here" in tag_html
+
+    # API GET /posts exposes pinned flag while preserving chronological order
+    posts_api = client.get("/posts").json()
+    assert [(p["slug"], p["pinned"]) for p in posts_api] == [
+        ("fresh-2", False),
+        ("fresh-1", False),
+        ("start-here", True),
+    ]
+
+    # Publishing a newer pinned post switches active pin everywhere
+    r_pin2 = client.post(
+        "/publish",
+        json={
+            "markdown": (
+                "---\ntitle: Newer Pinned\ndate: 2026-04-01\ntags: [meta]\npinned: true\n---\n\n"
+                "Updated announcement."
+            )
+        },
+        headers=headers,
+    )
+    assert r_pin2.status_code == 200
+    assert "Newer Pinned" in client.get("/posts/").text
+    assert "Newer Pinned" in client.get("/posts/page/1/").text
+    assert "Newer Pinned" in client.get("/posts/tags/news/").text
+
+    # Unpinning newer-pinned falls back to the remaining older pinned post
+    r_unpin = client.post(
+        "/publish",
+        json={
+            "markdown": (
+                "---\ntitle: Newer Pinned\nslug: newer-pinned\ndate: 2026-04-01\n"
+                "tags: [meta]\npinned: false\n---\n\nUpdated announcement."
+            )
+        },
+        headers=headers,
+    )
+    assert r_unpin.status_code == 200
+    assert "Start Here" in client.get("/posts/").text
+    assert "Start Here" in client.get("/posts/tags/news/").text
+
+    # Deleting the remaining pinned post removes pinned block everywhere
+    r_del = client.delete("/posts/start-here", headers=headers)
+    assert r_del.status_code == 200
+    assert 'class="n2c-pinned-card"' not in client.get("/posts/").text
+    assert 'class="n2c-pinned-compact"' not in client.get("/posts/tags/news/").text
+
+
+@pytest.mark.asyncio
+async def test_sqlite_migration_adds_pinned_column(tmp_path):
+    import aiosqlite
+    from pipeline.parser import parse_markdown
+    from pipeline.taxonomy import TaxonomyDB
+
+    db_path = tmp_path / "legacy.db"
+    async with aiosqlite.connect(db_path) as conn:
+        await conn.execute("""
+            CREATE TABLE posts (
+                slug TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                date TEXT NOT NULL,
+                tags TEXT NOT NULL DEFAULT '[]',
+                reading_time INTEGER NOT NULL DEFAULT 1,
+                excerpt TEXT NOT NULL DEFAULT '',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            )
+        """)
+        await conn.commit()
+
+    db = TaxonomyDB(str(db_path))
+    await db.initialize()
+    post = parse_markdown("---\ntitle: Migrated Pin\npinned: true\n---\nBody.")
+    await db.upsert_post(post)
+    loaded = await db.get_post("migrated-pin")
+    assert loaded is not None
+    assert loaded["pinned"] is True
+    await db.close()
+
+
+def test_migrator_recovers_pinned_meta(monkeypatch):
+    from pipeline.migrator import fetch_and_parse_post
+
+    sample_html = """<!DOCTYPE html><html><head>
+    <meta property="og:title" content="Pinned Recovery">
+    <meta name="description" content="Recovered excerpt">
+    <meta name="n2c:pinned" content="true">
+    </head><body><article><header><time datetime="2026-03-16T00:00:00+00:00">March 16, 2026</time></header>
+    <div class="post-content"><p>Hello world.</p></div></article></body></html>"""
+
+    class FakeResp:
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def read(self):
+            return sample_html.encode("utf-8")
+
+    monkeypatch.setattr("urllib.request.urlopen", lambda req, timeout=15: FakeResp())
+    data = fetch_and_parse_post("user/blog", slug="pinned-recovery")
+    assert data["pinned"] is True
+    assert "pinned: true" in data["markdown"]
+
+

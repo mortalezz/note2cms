@@ -33,6 +33,7 @@ class TaxonomyDB:
                 series TEXT NOT NULL DEFAULT '',
                 series_order INTEGER,
                 post_type TEXT NOT NULL DEFAULT 'post',
+                pinned INTEGER NOT NULL DEFAULT 0,
                 assets_meta TEXT NOT NULL DEFAULT '{}',
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL
@@ -47,6 +48,7 @@ class TaxonomyDB:
             ("series", "ALTER TABLE posts ADD COLUMN series TEXT NOT NULL DEFAULT ''"),
             ("series_order", "ALTER TABLE posts ADD COLUMN series_order INTEGER"),
             ("post_type", "ALTER TABLE posts ADD COLUMN post_type TEXT NOT NULL DEFAULT 'post'"),
+            ("pinned", "ALTER TABLE posts ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0"),
             ("assets_meta", "ALTER TABLE posts ADD COLUMN assets_meta TEXT NOT NULL DEFAULT '{}'"),
         ]
         for col, ddl in migrations:
@@ -69,6 +71,7 @@ class TaxonomyDB:
         series = getattr(post, "series", None) or ""
         series_order = getattr(post, "series_order", None)
         post_type = getattr(post, "post_type", None) or "post"
+        pinned = 1 if (getattr(post, "pinned", False) and post_type != "page") else 0
         assets_json = json.dumps(assets_meta) if assets_meta is not None else None
 
         if assets_json is None:
@@ -78,9 +81,9 @@ class TaxonomyDB:
         await self._db.execute("""
             INSERT INTO posts (
                 slug, title, date, tags, reading_time, excerpt,
-                cover, series, series_order, post_type, assets_meta, created_at, updated_at
+                cover, series, series_order, post_type, pinned, assets_meta, created_at, updated_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(slug) DO UPDATE SET
                 title = excluded.title,
                 date = excluded.date,
@@ -91,6 +94,7 @@ class TaxonomyDB:
                 series = excluded.series,
                 series_order = excluded.series_order,
                 post_type = excluded.post_type,
+                pinned = excluded.pinned,
                 assets_meta = excluded.assets_meta,
                 updated_at = excluded.updated_at
         """, (
@@ -104,6 +108,7 @@ class TaxonomyDB:
             series,
             series_order,
             post_type,
+            pinned,
             assets_json,
             now,
             now,
@@ -173,6 +178,7 @@ class TaxonomyDB:
         """Convert a database row to a dictionary with parsed tags and assets_meta."""
         d = dict(row)
         d["tags"] = json.loads(d["tags"])
+        d["pinned"] = bool(d.get("pinned", 0))
         raw_assets = d.get("assets_meta")
         if isinstance(raw_assets, str):
             d["assets_meta"] = json.loads(raw_assets or "{}")

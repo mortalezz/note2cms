@@ -383,7 +383,8 @@
         page-break-inside: avoid;
     }
     .n2c-carousel-nav,
-    .n2c-lightbox {
+    .n2c-lightbox,
+    .n2c-share-bar {
         display: none !important;
     }
 }
@@ -551,4 +552,163 @@
     margin: 0.35rem 0 0;
     color: var(--n2c-muted);
     font-size: 0.9rem;
+}
+
+/* --- Pinned Post (Full Card on Index, Compact Banner on Archive/Tag Pages) --- */
+.n2c-pinned-card {
+    max-width: var(--col-width, var(--max-width, 100%));
+    margin: 0 auto 2rem;
+    padding: 1.15rem 1.25rem;
+    border: 1px solid var(--n2c-rule);
+    border-left: 3px solid var(--n2c-accent);
+    border-radius: 4px;
+    background: var(--n2c-surface);
+}
+
+.n2c-pinned-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem 0.65rem;
+    font-size: 0.78rem;
+    color: var(--n2c-muted);
+    margin-bottom: 0.55rem;
+}
+
+.n2c-pinned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--n2c-accent);
+}
+
+.n2c-pinned-heading {
+    margin: 0 0 0.45rem;
+    font-size: 1.35rem;
+    line-height: 1.3;
+    font-weight: 500;
+}
+
+.n2c-pinned-title {
+    color: var(--n2c-fg);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.n2c-pinned-title:hover {
+    color: var(--n2c-accent);
+}
+
+.n2c-pinned-excerpt {
+    margin: 0;
+    color: var(--n2c-muted);
+    font-size: 0.94rem;
+    line-height: 1.55;
+}
+
+.n2c-pinned-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.n2c-pinned-tag {
+    font-size: 0.74rem;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 3px;
+    color: var(--n2c-muted);
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.n2c-pinned-tag:hover {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
+}
+
+.n2c-pinned-compact {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    max-width: var(--col-width, var(--max-width, 100%));
+    margin: 0 auto 1.5rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid var(--n2c-rule);
+    border-left: 3px solid var(--n2c-accent);
+    border-radius: 4px;
+    background: var(--n2c-surface);
+    text-decoration: none;
+    color: var(--n2c-fg);
+    font-size: 0.88rem;
+    transition: border-color 0.15s ease;
+}
+
+.n2c-pinned-compact:hover {
+    border-color: var(--n2c-accent);
+}
+
+.n2c-pinned-compact .n2c-pinned-badge {
+    flex-shrink: 0;
+}
+
+.n2c-pinned-compact-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.n2c-pinned-arrow {
+    margin-left: auto;
+    color: var(--n2c-accent);
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+
+.n2c-pinned-compact:hover .n2c-pinned-arrow {
+    transform: translateX(2px);
+}
+
+/* --- Post Share Bar --- */
+.n2c-share-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.75rem;
+}
+
+.n2c-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--n2c-rule);
+    border-radius: 4px;
+    background: var(--n2c-surface);
+    color: var(--n2c-fg);
+    font-family: inherit;
+    font-size: 0.84rem;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.n2c-share-btn:hover,
+.n2c-share-btn:focus-visible {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
+    outline: none;
+}
+
+.n2c-share-btn.is-copied {
+    border-color: var(--n2c-accent);
+    color: var(--n2c-accent);
 }

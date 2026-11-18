@@ -51,6 +51,7 @@ class PostgresTaxonomyDB:
                         series TEXT NOT NULL DEFAULT '',
                         series_order INTEGER,
                         post_type TEXT NOT NULL DEFAULT 'post',
+                        pinned BOOLEAN NOT NULL DEFAULT FALSE,
                         assets_meta JSONB NOT NULL DEFAULT '{}',
                         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -61,6 +62,7 @@ class PostgresTaxonomyDB:
                     "ALTER TABLE posts ADD COLUMN IF NOT EXISTS series TEXT NOT NULL DEFAULT ''",
                     "ALTER TABLE posts ADD COLUMN IF NOT EXISTS series_order INTEGER",
                     "ALTER TABLE posts ADD COLUMN IF NOT EXISTS post_type TEXT NOT NULL DEFAULT 'post'",
+                    "ALTER TABLE posts ADD COLUMN IF NOT EXISTS pinned BOOLEAN NOT NULL DEFAULT FALSE",
                     "ALTER TABLE posts ADD COLUMN IF NOT EXISTS assets_meta JSONB NOT NULL DEFAULT '{}'",
                 ]
                 for ddl in migrations:
@@ -108,6 +110,7 @@ class PostgresTaxonomyDB:
         series = getattr(post, "series", None) or ""
         series_order = getattr(post, "series_order", None)
         post_type = getattr(post, "post_type", None) or "post"
+        pinned = bool(getattr(post, "pinned", False)) and post_type != "page"
 
         if assets_meta is None:
             existing = await self.get_post(post.slug)
@@ -122,9 +125,9 @@ class PostgresTaxonomyDB:
                     await cur.execute("""
                         INSERT INTO posts (
                             slug, title, date, tags, reading_time, excerpt,
-                            cover, series, series_order, post_type, assets_meta, created_at, updated_at
+                            cover, series, series_order, post_type, pinned, assets_meta, created_at, updated_at
                         )
-                        VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW(), NOW())
+                        VALUES (%s, %s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, NOW(), NOW())
                         ON CONFLICT (slug) DO UPDATE SET
                             title = EXCLUDED.title,
                             date = EXCLUDED.date,
@@ -135,12 +138,13 @@ class PostgresTaxonomyDB:
                             series = EXCLUDED.series,
                             series_order = EXCLUDED.series_order,
                             post_type = EXCLUDED.post_type,
+                            pinned = EXCLUDED.pinned,
                             assets_meta = EXCLUDED.assets_meta,
                             updated_at = NOW()
                     """, (
                         post.slug, post.title, post.date, tags_json,
                         post.reading_time, post.excerpt,
-                        cover, series, series_order, post_type, assets_json,
+                        cover, series, series_order, post_type, pinned, assets_json,
                     ))
 
         await self._retrying(_op, op_name="upsert_post")
@@ -237,6 +241,7 @@ class PostgresTaxonomyDB:
     def _row_to_dict(row) -> dict:
         """Convert a database row to a dictionary."""
         d = dict(row)
+        d["pinned"] = bool(d.get("pinned", False))
         # psycopg returns JSONB as native Python types
         if isinstance(d.get("tags"), str):
             d["tags"] = json.loads(d["tags"])

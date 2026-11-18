@@ -91,6 +91,9 @@ Your post template receives these variables:
 | `related_posts` | list of dicts | Up to 3 posts sharing tags |
 | `series_info` | dict or None | Series TOC (`name`, `current_index`, `total`, `posts`) |
 | `nav_pages` | list of dicts | Static pages (`type: page`) |
+| `post_url` | string | Canonical post URL (`{{ site_url }}/posts/{{ slug }}/`) |
+| `is_page` | bool | True when `type: page` |
+| `pinned` | bool | True when `pinned: true` on a post |
 
 Minimal example:
 
@@ -123,6 +126,7 @@ Your index template receives these variables:
 | Variable | Type | Description |
 |---|---|---|
 | `posts` | list of dicts | All posts, newest first |
+| `pinned_post` | dict or None | Active pinned post (`pinned: true`, newest wins) |
 | `site_title` | string | Your blog name |
 | `site_url` | string | Your blog URL |
 | `site_lang` | string | `"en"` or `"ru"` |
@@ -139,9 +143,9 @@ Your index template receives these variables:
 All themes can include reusable zero-JS components from `themes/_shared/`:
 - `_shared/components.css` — pure-CSS scroll-snap carousel, `:target` lightbox, pagination, tag cloud, series TOC, prev/next cards (inherits theme variables automatically)
 - `_shared/head_meta.html` — RSS/Atom links, `og:image`, `twitter:card`, `rel="prev/next"`
-- `_shared/site_nav.html` — navigation bar and tag filter banner
+- `_shared/site_nav.html` — navigation bar, tag filter banner, and pinned post slot (`_shared/pinned_post.html`)
 - `_shared/pagination.html` — page navigation bar
-- `_shared/series_box.html` & `_shared/post_extras.html` — series TOC, prev/next, related posts
+- `_shared/series_box.html` & `_shared/post_extras.html` — series TOC, native share + copy-link bar, prev/next, related posts
 - `_shared/tags_overview.html` & `_shared/search_page.html` — tags overview and optional static search page
 
 Each post in the `posts` list contains:

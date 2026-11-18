@@ -93,6 +93,8 @@ def fetch_and_parse_post(repo: str, branch: str = "gh-pages", slug: str = "", to
     if tags_m:
         tags = [html.unescape(t).strip().lower() for t in re.findall(r'<span>(.*?)</span>', tags_m[0])]
 
+    pinned = bool(re.search(r'<meta\s+name="n2c:pinned"\s+content="true"', content_html, re.IGNORECASE))
+
     body_m = re.search(r'<div class="post-content">(.*?)</div>\s*</article>', content_html, re.DOTALL)
     body_html = body_m.group(1).strip() if body_m else ""
 
@@ -121,6 +123,8 @@ def fetch_and_parse_post(repo: str, branch: str = "gh-pages", slug: str = "", to
     if excerpt:
         escaped_excerpt = excerpt.replace('"', '\\"').replace("\n", " ")
         yaml_lines.append(f'excerpt: "{escaped_excerpt}"')
+    if pinned:
+        yaml_lines.append("pinned: true")
     yaml_lines.append("---")
     yaml_lines.append("")
     yaml_lines.append(body_md)
@@ -135,5 +139,6 @@ def fetch_and_parse_post(repo: str, branch: str = "gh-pages", slug: str = "", to
         "tags": tags,
         "reading_time": reading_time,
         "excerpt": excerpt,
+        "pinned": pinned,
         "markdown": full_markdown,
     }

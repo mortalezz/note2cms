@@ -60,7 +60,7 @@ Static outputs generated on publish:
 - **Zero-JS Image Carousel**: Consecutive images in a paragraph, `![[obsidian.jpg]]` embeds, or `::: gallery ... :::` blocks become CSS scroll-snap carousels with `:target` lightbox. Uploaded images have EXIF/GPS stripped and are resized to `<= 1 MP` with responsive WebP `srcset`.
 - **Tag Archives**: `/posts/tags/` and paginated `/posts/tags/{tag}/`.
 - **Feeds & SEO**: `/feed.xml` (RSS 2.0), `/atom.xml` (Atom 1.0), `/sitemap.xml`, `/robots.txt`, and auto-generated 1200×630 theme-matched OG cards (`og.png`) for text-only posts.
-- **Internal Navigation**: Previous/Next posts, `series:` / `series_order:` series TOC, related posts, and static pages (`type: page`).
+- **Internal Navigation & Sharing**: Previous/Next posts, `series:` / `series_order:` series TOC, related posts, static pages (`type: page`), pinned posts (`pinned: true` shown across index, archive, and tag pages), and native OS share + copy-link buttons below every post.
 - **Optional Static Search**: Set `SEARCH=true` to generate `/search-index.json` and `/posts/search/`.
 - **Localization**: Set `SITE_LANG=ru` or `en` for localized dates and UI labels.
 
@@ -78,6 +78,7 @@ series: Caucasus 2026     # Optional series name
 series_order: 1           # Optional integer position in series
 type: post                # Optional: "post" (default) or "page"
 carousel: true            # Optional: false disables auto-carousel for this post
+pinned: false             # Optional: true pins the post at the top across all index/archive/tag pages
 ---
 ```
 
@@ -232,6 +233,10 @@ See [.env.example](.env.example) for all options:
 | `CORS_ORIGINS` | `*` | Comma-separated allowed CORS origins |
 
 ## What's New
+
+### v0.3.1 (2026-11-18)
+- **Post Share Bar**: Native OS share (`navigator.share`) and copy-link buttons with localized feedback at the bottom of every post across all 21 themes.
+- **Pinned Posts (`pinned: true`)**: Decoupled pinned post slot displaying a full featured card on the main index and a compact banner across all archive (`/posts/page/{n}/`) and tag (`/posts/tags/{tag}/`) pages without shifting `stable` pagination slices.
 
 ### v0.3.0 (2026-11-18)
 - **Stable O(1) Pagination (`PAGINATION_MODE=stable`)**: Archive pages are sliced oldest-first so existing `/posts/page/{n}/` URLs never shift when new posts are published (with `classic` mode also supported), plus `tag`/`limit`/`offset` and `X-Total-Count` on `GET /posts`.

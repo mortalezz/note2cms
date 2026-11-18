@@ -79,9 +79,24 @@ async def test_all_themes_render_post_and_paginated_index(theme_name: str):
         assert 'class="n2c-series"' in bundle.html
         assert 'class="n2c-post-nav"' in bundle.html
         assert 'class="n2c-related"' in bundle.html
+        assert 'class="n2c-share-bar"' in bundle.html
+        assert 'class="n2c-share-btn n2c-share-native"' in bundle.html
+        assert 'class="n2c-share-btn n2c-share-copy"' in bundle.html
         assert "/posts/tags/python/" in bundle.html
         assert bundle.og_image_url == "https://example.com/1.jpg"
         assert bundle.og_png_bytes is None
+
+        # Static page must not render share bar or pinned meta
+        page_post = parse_markdown("---\ntitle: About\ntype: page\npinned: true\n---\n\nStatic page body.")
+        page_bundle = builder.render_post_bundle(page_post)
+        assert 'class="n2c-share-bar"' not in page_bundle.html
+        assert 'name="n2c:pinned"' not in page_bundle.html
+
+        # Pinned post renders meta marker and full card on index, compact banner on archive & tag pages
+        pinned_sample = parse_markdown("---\ntitle: Pinned Post\npinned: true\n---\n\nPinned body.")
+        pinned_bundle = builder.render_post_bundle(pinned_sample)
+        assert '<meta name="n2c:pinned" content="true">' in pinned_bundle.html
+        assert 'class="n2c-share-bar"' in pinned_bundle.html
 
         # Also verify OG PNG card generation when post has no images
         text_only = parse_markdown("---\ntitle: Text Only Card\ntags: [notes]\n---\n\nJust words.")
@@ -95,14 +110,27 @@ async def test_all_themes_render_post_and_paginated_index(theme_name: str):
 
         # Paginated index checks for 1, 10, 11, 47 posts
         for n in (1, 10, 11, 47):
+            sample_posts = _sample_posts(n)
+            sample_posts[-1]["pinned"] = True
             slices = paginate_posts(
-                _sample_posts(n), per_page=10, mode="stable", base_url="https://example.com"
+                sample_posts, per_page=10, mode="stable", base_url="https://example.com"
             )
-            idx_html = builder.render_index_slice(slices[-1])
+            pinned_item = sample_posts[-1]
+            idx_html = builder.render_index_slice(slices[-1], pinned_post=pinned_item)
             assert f'<html lang="{lang}">' in idx_html
             assert ('&#34;Quotes&#34;' in idx_html or '&quot;Quotes&quot;' in idx_html)
+            assert 'class="n2c-pinned-card"' in idx_html
+            assert 'class="n2c-pinned-compact"' not in idx_html
             if n > 10:
                 assert 'class="n2c-pagination"' in idx_html
+                arch_html = builder.render_index_slice(slices[0], pinned_post=pinned_item)
+                assert 'class="n2c-pinned-compact"' in arch_html
+                assert 'class="n2c-pinned-card"' not in arch_html
+            tag_html = builder.render_index_slice(
+                slices[-1], active_tag="python", pinned_post=pinned_item
+            )
+            assert 'class="n2c-pinned-compact"' in tag_html
+            assert 'class="n2c-pinned-card"' not in tag_html
             if theme_name != "brutalist2":
                 assert "<script" not in idx_html.lower()
 

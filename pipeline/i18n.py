@@ -48,6 +48,10 @@ TRANSLATIONS = {
         "home": "Home",
         "subtitle": "writing, published from notes.",
         "footer_powered": "Published with note2cms — the past-browser publishing protocol",
+        "pinned_label": "Pinned",
+        "share_post": "Share",
+        "copy_link": "Copy link",
+        "copied_link": "Copied ✓",
     },
     "ru": {
         "min_read": "мин чтения",
@@ -77,6 +81,10 @@ TRANSLATIONS = {
         "home": "Главная",
         "subtitle": "заметки, опубликованные в веб.",
         "footer_powered": "Опубликовано через note2cms",
+        "pinned_label": "Закреплено",
+        "share_post": "Поделиться",
+        "copy_link": "Скопировать ссылку",
+        "copied_link": "Скопировано ✓",
     },
 }
 

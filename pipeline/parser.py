@@ -3,7 +3,7 @@ Markdown parser — the contract between your notes and the pipelines.
 
 Frontmatter spec (minimal by design):
   Required: title
-  Optional: tags, date, slug, excerpt, cover, series, series_order, type, carousel
+  Optional: tags, date, slug, excerpt, cover, series, series_order, type, carousel, pinned
 
 Everything else is derived.
 """
@@ -33,6 +33,7 @@ class ParsedPost:
     series_order: Optional[int] = None
     post_type: str = "post"
     carousel: bool = True
+    pinned: bool = False
 
 
 def _normalize_date(date_val: Any) -> str:
@@ -128,6 +129,7 @@ def parse_markdown(raw: str) -> ParsedPost:
     - series_order (optional integer order within series)
     - type / post_type (optional: "post" or "page")
     - carousel (optional bool, default True)
+    - pinned / pin (optional bool, default False; only applies to posts)
     """
     post = frontmatter.loads(raw)
     metadata = post.metadata
@@ -187,6 +189,14 @@ def parse_markdown(raw: str) -> ParsedPost:
     else:
         carousel = bool(carousel_raw)
 
+    pinned_raw = metadata.get("pinned", metadata.get("pin", False))
+    if isinstance(pinned_raw, str):
+        pinned = pinned_raw.strip().lower() in ("true", "1", "yes", "on")
+    else:
+        pinned = bool(pinned_raw)
+    if post_type == "page":
+        pinned = False
+
     return ParsedPost(
         title=title,
         slug=slug,
@@ -201,4 +211,5 @@ def parse_markdown(raw: str) -> ParsedPost:
         series_order=series_order,
         post_type=post_type,
         carousel=carousel,
+        pinned=pinned,
     )

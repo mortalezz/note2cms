@@ -110,6 +110,26 @@ class CloudBuildPipeline:
             })
         return formatted
 
+    def _resolve_pinned_post(
+        self, posts: list[dict], explicit_pinned: Optional[dict] = None
+    ) -> Optional[dict]:
+        """Return formatted active pinned post (explicit override or newest pinned post)."""
+        candidate = explicit_pinned
+        if candidate is None:
+            candidate = next(
+                (
+                    p
+                    for p in posts
+                    if p.get("pinned") and p.get("post_type", "post") != "page"
+                ),
+                None,
+            )
+        if not candidate:
+            return None
+        if "display_date" in candidate and "permalink" in candidate:
+            return candidate
+        return self._format_summary_items([candidate])[0]
+
     def compute_post_relations(
         self,
         slug: str,
@@ -248,6 +268,7 @@ class CloudBuildPipeline:
 
         template = self.jinja_env.get_template("post.html")
         is_page = getattr(post, "post_type", "post") == "page"
+        post_url = f"{self.site_url}/posts/{post.slug}/"
         html_out = template.render(
             title=post.title,
             date=display_date,
@@ -256,6 +277,9 @@ class CloudBuildPipeline:
             tags=[] if is_page else post.tags,
             reading_time=post.reading_time,
             slug=post.slug,
+            post_url=post_url,
+            is_page=is_page,
+            pinned=bool(getattr(post, "pinned", False)) and not is_page,
             site_title=self.site_title,
             site_url=self.site_url,
             excerpt=post.excerpt,
@@ -310,13 +334,16 @@ class CloudBuildPipeline:
         *,
         nav_pages: Optional[list[dict]] = None,
         active_tag: Optional[str] = None,
+        pinned_post: Optional[dict] = None,
     ) -> str:
         """Render a single paginated index (or tag archive) PageSlice to HTML."""
         formatted_posts = self._format_summary_items(page_slice.posts)
+        resolved_pinned = self._resolve_pinned_post(page_slice.posts, pinned_post)
         i18n = get_translations(self.site_lang)
         template = self.jinja_env.get_template("index.html")
         html_out = template.render(
             posts=formatted_posts,
+            pinned_post=resolved_pinned,
             pagination=page_slice,
             site_title=self.site_title,
             site_url=self.site_url,
@@ -340,6 +367,7 @@ class CloudBuildPipeline:
         include_root_index: bool = True,
         nav_pages: Optional[list[dict]] = None,
         active_tag: Optional[str] = None,
+        pinned_post: Optional[dict] = None,
     ) -> dict[str, str]:
         """Render all PageSlices for an index or tag archive into `{path: html}`."""
         slices = paginate_posts(
@@ -350,12 +378,14 @@ class CloudBuildPipeline:
             prefix=prefix,
             include_root_index=include_root_index,
         )
+        resolved_pinned = self._resolve_pinned_post(posts, pinned_post)
         outputs: dict[str, str] = {}
         for page_slice in slices:
             html_out = self.render_index_slice(
                 page_slice,
                 nav_pages=nav_pages,
                 active_tag=active_tag,
+                pinned_post=resolved_pinned,
             )
             for out_path in page_slice.output_paths:
                 outputs[out_path] = html_out

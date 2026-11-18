@@ -147,7 +147,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="note2cms",
     description="Past-Browser Publishing Protocol",
-    version="0.3.0",
+    version="0.3.1",
     lifespan=lifespan,
 )
 
@@ -202,6 +202,7 @@ class PostSummary(BaseModel):
     reading_time: int
     excerpt: str
     permalink: str
+    pinned: bool = False
 
 
 class MediaUploadRequest(BaseModel):
@@ -242,6 +243,11 @@ def _assets_meta_from_map(assets_map: dict[str, ProcessedAsset]) -> dict[str, di
         }
         for k, v in assets_map.items()
     }
+
+
+def _find_active_pinned(posts: list[dict]) -> Optional[dict]:
+    """Return the newest pinned post from a newest-first post list."""
+    return next((p for p in posts if p.get("pinned")), None)
 
 
 def _build_nav_pages(pages: list[dict]) -> list[dict]:
@@ -373,6 +379,7 @@ async def _add_tag_pages(
     tags_to_build: set[str],
     all_tags: dict[str, int],
     nav_pages: list[dict],
+    pinned_post: Optional[dict] = None,
 ) -> None:
     per_page = SETTINGS["POSTS_PER_PAGE"]
     mode = SETTINGS["PAGINATION_MODE"]
@@ -391,6 +398,7 @@ async def _add_tag_pages(
             include_root_index=False,
             nav_pages=nav_pages,
             active_tag=tag,
+            pinned_post=pinned_post,
         )
         for out_path, html_out in rendered_pages.items():
             batch.add(out_path, html_out)
@@ -417,6 +425,8 @@ async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
     is_new = existing is None
     old_tags = set(existing.get("tags", [])) if existing else set()
     old_posts = await db.list_posts(include_pages=False)
+    old_pinned = _find_active_pinned(old_posts)
+    old_pinned_slug = old_pinned["slug"] if old_pinned else None
     old_rel = (
         builder.compute_post_relations(
             post.slug, old_posts, series_name=existing.get("series") or None
@@ -459,6 +469,9 @@ async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
     pages = await db.list_pages()
     nav_pages = _build_nav_pages(pages)
     all_tags = await db.list_all_tags()
+    active_pinned = _find_active_pinned(all_posts)
+    new_pinned_slug = active_pinned["slug"] if active_pinned else None
+    pinned_changed = (old_pinned_slug != new_pinned_slug) or (new_pinned_slug == post.slug)
 
     # Render current post/page
     rel = (
@@ -509,20 +522,25 @@ async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
             prefix="/posts",
         )
         is_new_newest = is_new and bool(all_posts) and all_posts[0]["slug"] == post.slug
-        slices_to_build = select_incremental_slices(
-            all_slices,
-            mode=mode,
-            per_page=per_page,
-            is_new_newest=is_new_newest,
-            changed_slug=post.slug,
-            total_after=len(all_posts),
-        )
+        if pinned_changed:
+            slices_to_build = all_slices
+            tags_to_build = set(all_tags.keys()) | old_tags
+        else:
+            slices_to_build = select_incremental_slices(
+                all_slices,
+                mode=mode,
+                per_page=per_page,
+                is_new_newest=is_new_newest,
+                changed_slug=post.slug,
+                total_after=len(all_posts),
+            )
+            tags_to_build = set(post.tags) | old_tags
         for sl in slices_to_build:
-            html_out = builder.render_index_slice(sl, nav_pages=nav_pages)
+            html_out = builder.render_index_slice(sl, nav_pages=nav_pages, pinned_post=active_pinned)
             for out_path in sl.output_paths:
                 batch.add(out_path, html_out)
 
-        await _add_tag_pages(batch, set(post.tags) | old_tags, all_tags, nav_pages)
+        await _add_tag_pages(batch, tags_to_build, all_tags, nav_pages, pinned_post=active_pinned)
     else:
         # Static page added/updated: update main index nav bar
         all_slices = paginate_posts(
@@ -533,7 +551,7 @@ async def publish(req: PublishRequest, _token: str = Depends(verify_token)):
             prefix="/posts",
         )
         for sl in all_slices:
-            html_out = builder.render_index_slice(sl, nav_pages=nav_pages)
+            html_out = builder.render_index_slice(sl, nav_pages=nav_pages, pinned_post=active_pinned)
             for out_path in sl.output_paths:
                 batch.add(out_path, html_out)
 
@@ -601,6 +619,7 @@ async def delete_post(slug: str, _token: str = Depends(verify_token)):
     pages = await db.list_pages()
     nav_pages = _build_nav_pages(pages)
     all_tags = await db.list_all_tags()
+    active_pinned = _find_active_pinned(all_posts)
 
     # Re-render old neighbors / series peers
     affected_slugs: set[str] = set()
@@ -620,10 +639,12 @@ async def delete_post(slug: str, _token: str = Depends(verify_token)):
         per_page=SETTINGS["POSTS_PER_PAGE"],
         mode=SETTINGS["PAGINATION_MODE"],
         nav_pages=nav_pages,
+        pinned_post=active_pinned,
     ).items():
         batch.add(out_path, html_out)
 
-    await _add_tag_pages(batch, old_tags, all_tags, nav_pages)
+    tags_to_rebuild = (set(all_tags.keys()) | old_tags) if existing.get("pinned") else old_tags
+    await _add_tag_pages(batch, tags_to_rebuild, all_tags, nav_pages, pinned_post=active_pinned)
     await _add_site_artifacts(batch, all_posts, pages, all_tags, nav_pages)
 
     ok = await deployer.deploy_batch(batch, message=f"delete: {slug}")
@@ -665,6 +686,7 @@ async def list_posts(
             reading_time=p["reading_time"],
             excerpt=p["excerpt"],
             permalink=f"{site_url}/posts/{p['slug']}/",
+            pinned=bool(p.get("pinned", False)),
         )
         for p in sliced
     ]
@@ -703,6 +725,7 @@ async def search_endpoint(q: str = Query(..., min_length=1)):
             reading_time=p["reading_time"],
             excerpt=p["excerpt"],
             permalink=f"{site_url}/posts/{p['slug']}/",
+            pinned=bool(p.get("pinned", False)),
         )
         for p in matches
     ]
@@ -805,15 +828,17 @@ async def rebuild_all(_token: str = Depends(verify_token)):
             batch.add(f"posts/assets/{post.slug}/og.png", bundle.og_png_bytes)
         rebuilt += 1
 
+    active_pinned = _find_active_pinned(all_posts)
     for out_path, html_out in builder.render_paginated_index(
         all_posts,
         per_page=SETTINGS["POSTS_PER_PAGE"],
         mode=SETTINGS["PAGINATION_MODE"],
         nav_pages=nav_pages,
+        pinned_post=active_pinned,
     ).items():
         batch.add(out_path, html_out)
 
-    await _add_tag_pages(batch, set(all_tags.keys()), all_tags, nav_pages)
+    await _add_tag_pages(batch, set(all_tags.keys()), all_tags, nav_pages, pinned_post=active_pinned)
     await _add_site_artifacts(batch, all_posts, pages, all_tags, nav_pages)
 
     ok = await deployer.deploy_batch(batch, message="rebuild all")
