@@ -12,5 +12,9 @@ services:
       - API_TOKEN=${API_TOKEN:-dev-token-change-me}
       - SITE_TITLE=${SITE_TITLE:-My Blog}
       - SITE_URL=${SITE_URL:-http://localhost:8000}
+      - SITE_LANG=${SITE_LANG:-en}
       - ACTIVE_THEME=${ACTIVE_THEME:-default}
+      - POSTS_PER_PAGE=${POSTS_PER_PAGE:-10}
+      - PAGINATION_MODE=${PAGINATION_MODE:-stable}
+      - SEARCH=${SEARCH:-false}
     restart: unless-stopped

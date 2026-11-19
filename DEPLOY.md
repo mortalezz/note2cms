@@ -1,188 +1,136 @@
-# Deployment Guide: Leapcell + GitHub Pages
+# Deployment Guide: FastAPI Cloud + Neon + GitHub Pages
 
-*Total cost: $0 + domain name*
+*Total cost: $0*
 
-**Leapcell** hosts the FastAPI brain (4 endpoints, taxonomy DB).
-**GitHub Pages** hosts the static body (the blog readers see).
+- **FastAPI Cloud** (`fastapicloud.com`) hosts the FastAPI backend.
+- **Neon** (`neon.tech`) hosts the serverless PostgreSQL taxonomy & markdown source database.
+- **GitHub Pages** (`gh-pages` branch) hosts the static HTML blog.
+- **Obsidian (`note2cms-publisher`)** sends notes to FastAPI Cloud in one click.
 
 ---
 
 ## Architecture
 
 ```
-[Your Notes App]
+[Obsidian Note]
       │
       ▼ POST /publish (Bearer token)
-┌─────────────────────────┐
-│   Leapcell (free tier)  │
-│                         │
-│   FastAPI + PostgreSQL   │
-│   ┌─────────────────┐   │
-│   │ Pipeline 1: Build│──────► GitHub Pages (gh-pages branch)
-│   │ Pipeline 2: Index│   │    ├── /posts/my-post/index.html
-│   └─────────────────┘   │    ├── /posts/index.html
-│                         │    └── (pure static HTML + CSS)
-└─────────────────────────┘
-      │
-      ▼ Returns permalink
-[Share with the world]
+┌──────────────────────────────────────────────┐
+│            FastAPI Cloud (Serverless)        │
+│                                              │
+│   FastAPI Engine                             │
+│   ├── Pipeline 1: Render HTML ───────────────┼──► GitHub Pages (gh-pages)
+│   └── Pipeline 2: Upsert Taxonomy & Source   │     ├── /posts/my-post/index.html
+└──────────────────────┬───────────────────────┘     └── index.html
+                       │
+                       ▼ PostgreSQL (DATABASE_URL)
+┌──────────────────────────────────────────────┐
+│           Neon Serverless PostgreSQL         │
+│  - posts (taxonomy, tags, reading time)      │
+│  - markdown_source (raw markdown backup)     │
+└──────────────────────────────────────────────┘
 ```
 
 ---
 
-## Step 1: Create the GitHub Repository
+## Step 1: Create the GitHub Repository (Blog Output)
+
+1. Create a repository on GitHub (e.g., `blog`)
+2. Enable GitHub Pages:
+   - Go to repo **Settings** → **Pages**
+   - Source: **Deploy from a branch**
+   - Branch: `gh-pages` / `/ (root)`
+3. Ensure the branch has an initial file (or run locally):
+   ```bash
+   git checkout -b gh-pages
+   touch .nojekyll
+   echo "placeholder" > index.html
+   git add . && git commit -m "init" && git push origin gh-pages
+   ```
+
+---
+
+## Step 2: Generate a GitHub Personal Access Token (PAT)
+
+1. Go to GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)** or **Fine-grained**.
+2. Permissions:
+   - Repository access: your `blog` repo
+   - Permissions: **Contents** (Read and write)
+3. Copy the token (starts with `github_pat_` or `ghp_`).
+
+---
+
+## Step 3: Connect Neon PostgreSQL to FastAPI Cloud
+
+1. In **FastAPI Cloud** (`fastapicloud.com`), go to your Project/Workspace settings.
+2. Under **Integrations**, connect **Neon** (or create a database at [neon.tech](https://neon.tech)).
+3. Copy the PostgreSQL connection string (`DATABASE_URL`), which looks like:
+   `postgresql://username:password@ep-xyz.region.neon.tech/neondb?sslmode=require`
+
+---
+
+## Step 4: Deploy note2cms to FastAPI Cloud
+
+1. In terminal, navigate to the `note2cms` directory:
+   ```bash
+   cd c:\_dev\note2cms
+   ```
+2. Log in to FastAPI Cloud (if not already logged in):
+   ```bash
+   fastapi login
+   ```
+3. Deploy the application:
+   ```bash
+   fastapi deploy
+   ```
+4. In the FastAPI Cloud dashboard, set the **Environment Variables**:
+
+| Variable | Description / Value |
+|---|---|
+| `API_TOKEN` | A secret token for publishing (e.g. `python -c "import secrets; print(secrets.token_urlsafe(32))"`) |
+| `DATABASE_URL` | Neon PostgreSQL URI from Step 3 |
+| `SITE_TITLE` | Your blog name (e.g., `stenAgram`) |
+| `SITE_URL` | `https://YOUR_USERNAME.github.io/blog` (no trailing slash!) |
+| `ACTIVE_THEME` | `default` (or any of the 21 themes in `themes/`) |
+| `GITHUB_TOKEN` | GitHub PAT from Step 2 |
+| `GITHUB_REPO` | `YOUR_USERNAME/blog` |
+| `GITHUB_BRANCH` | `gh-pages` |
+| `DEPLOY_TARGET` | `github_pages` |
+| `SITE_LANG` | Optional UI & date language: `en` (default) or `ru` |
+| `POSTS_PER_PAGE` | Optional posts per page (default `10`) |
+| `PAGINATION_MODE` | Optional `stable` (default, O(1) archive URLs) or `classic` |
+| `SEARCH` | Optional `true` to generate static `/search-index.json` & `/posts/search/` |
+| `GALLERY_AUTO` | Optional `true` (default) to auto-convert image paragraphs into zero-JS carousels |
+| `MAX_IMAGE_MP` | Optional max image size in megapixels (default `1.0`) |
+| `FEED_FULL_TEXT` | Optional `true` (default) to include full HTML bodies in RSS/Atom feeds |
+| `NAV_PAGES` | Optional comma-separated slugs of `type: page` notes to display in nav |
+
+FastAPI Cloud will provide your live backend URL (e.g., `https://note2cms-xxxx.fastapicloud.dev`).
+
+---
+
+## Step 5: Migrate Existing Posts from GitHub Pages (One-time)
+
+If you have already published posts on GitHub Pages and need to restore them into Neon PostgreSQL, either call `POST /import-from-blog` (via Swagger UI `/docs` or `curl` with Bearer `API_TOKEN`) or run locally:
 
 ```bash
-# Create a new repo for your blog's static output
-# Go to github.com/new → name it "blog" (or whatever you want)
-# Enable GitHub Pages: Settings → Pages → Source: "Deploy from a branch"
-# Branch: gh-pages, folder: / (root)
-
-# Clone it locally (you'll need the repo URL later)
-git clone https://github.com/YOUR_USERNAME/blog.git
-cd blog
-git checkout -b gh-pages
-touch .nojekyll  # Tell GitHub Pages not to run Jekyll
-echo "placeholder" > index.html
-git add . && git commit -m "init" && git push origin gh-pages
+cd c:\_dev\note2cms
+python migrate_from_blog.py --repo "YOUR_USERNAME/blog" --database-url "postgresql://..." --save-markdown ./content
 ```
 
-Your blog will be live at: `https://YOUR_USERNAME.github.io/blog/`
+This will automatically:
+- Download all posts from `gh-pages`.
+- Extract metadata and reconstruct clean Markdown with YAML frontmatter.
+- Populate the `posts` and `markdown_source` tables in your Neon PostgreSQL database.
+- Save local `.md` backups to `./content/`.
 
 ---
 
-## Step 2: Generate a GitHub Personal Access Token
+## Step 6: Configure Obsidian Plugin (`note2cms-publisher`)
 
-1. Go to: github.com → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-2. Create a new token with:
-   - **Repository access**: Only select repositories → your blog repo
-   - **Permissions**: Contents → Read and write
-3. Copy the token — you'll need it for Leapcell environment variables
-
----
-
-## Step 3: Create the Leapcell PostgreSQL Database
-
-1. Log in to [leapcell.io](https://leapcell.io)
-2. Click **Create Database**
-3. Select PostgreSQL, pick a region close to you
-4. Copy the connection string: `postgresql://user:pass@pooler.usXX.leap.cell/dbname`
-
----
-
-## Step 4: Push note2cms to GitHub
-
-```bash
-# Fork or push the note2cms source to your GitHub account
-git clone <your-note2cms-fork>
-cd note2cms
-
-# Make sure these files are present:
-#   api/__init__.py (main FastAPI app)
-#   api/main.py
-#   pipeline/
-#   themes/
-#   vite-renderer/
-#   requirements.txt
-```
-
----
-
-## Step 5: Deploy to Leapcell
-
-1. Go to Leapcell Dashboard → **New Service**
-2. Connect your GitHub account, select the note2cms repo
-3. Configure:
-
-| Field           | Value                                                     |
-|-----------------|-----------------------------------------------------------|
-| **Runtime**     | Python                                                    |
-| **Build Command** | `pip install -r requirements.txt && cd vite-renderer && npm install` |
-| **Start Command** | `uvicorn api.main:app --host 0.0.0.0 --port 8080`      |
-| **Port**        | 8080                                                      |
-
-4. Set **Environment Variables**:
-
-| Variable          | Value                                                       |
-|-------------------|-------------------------------------------------------------|
-| `API_TOKEN`       | *(generate one: `python -c "import secrets; print(secrets.token_urlsafe(32))"`)* |
-| `DATABASE_URL`    | `postgresql://user:pass@pooler.usXX.leap.cell/dbname`      |
-| `SITE_TITLE`      | Your Blog Name                                              |
-| `SITE_URL`        | `https://YOUR_USERNAME.github.io/blog`                      |
-| `ACTIVE_THEME`    | `default`                                                   |
-| `GITHUB_TOKEN`    | *(the PAT from Step 2)*                                     |
-| `GITHUB_REPO`     | `YOUR_USERNAME/blog`                                        |
-| `GITHUB_BRANCH`   | `gh-pages`                                                  |
-| `DEPLOY_TARGET`   | `github_pages`                                              |
-
-5. Click **Deploy**
-
----
-
-## Step 6: Publish Your First Post
-
-```bash
-# Replace YOUR_LEAPCELL_URL with your *.leapcell.dev domain
-# Replace YOUR_TOKEN with the API_TOKEN you generated
-
-curl -X POST https://YOUR_LEAPCELL_URL/publish \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "markdown": "---\ntitle: Hello World\ntags: [first]\n---\n\nThis is my first post, published from the command line.\n\nThe browser is for consuming. I wrote this in my notes app."
-  }'
-```
-
-You'll get back:
-```json
-{
-  "permalink": "https://YOUR_USERNAME.github.io/blog/posts/hello-world/",
-  "slug": "hello-world",
-  "title": "Hello World",
-  "created": true
-}
-```
-
-Visit the permalink. Your post is live.
-
----
-
-## Step 7: iOS Shortcut (Optional)
-
-Create an iOS Shortcut that:
-1. Receives shared text (from Notes, Bear, etc.)
-2. Sends a POST request to `https://YOUR_LEAPCELL_URL/publish`
-   - Headers: `Authorization: Bearer YOUR_TOKEN`, `Content-Type: application/json`
-   - Body: `{"markdown": "[shared text]"}`
-3. Extracts `permalink` from the JSON response
-4. Copies to clipboard or opens in Safari
-
-Now "Publish to Blog" appears in your share sheet. Done.
-
----
-
-## Step 8: Custom Domain (When Ready)
-
-1. Register a domain (e.g., `blog.yourdomain.com`)
-2. In your blog GitHub repo: Settings → Pages → Custom domain → enter your domain
-3. Set DNS: CNAME record pointing to `YOUR_USERNAME.github.io`
-4. Update the `SITE_URL` environment variable on Leapcell
-5. Wait for SSL certificate (automatic via GitHub)
-
----
-
-## How It All Fits Together
-
-- **You write** in Apple Notes, Bear, Obsidian, vim — wherever you think
-- **You publish** via share sheet, curl, or any HTTP client
-- **Leapcell** accepts the Markdown, builds HTML, updates taxonomy, pushes to GitHub
-- **GitHub Pages** serves the static HTML globally via CDN
-- **Readers** get pure HTML + CSS, no JavaScript, instant load
-- **You own** the Markdown source, the taxonomy, and the static output
-
-Total infrastructure: one free-tier Python runtime, one free PostgreSQL database,
-one free GitHub Pages site. Your blog costs you a domain name and nothing else.
-
----
-
-*Write where you think. Publish where they look. Own everything in between.*
+1. Open Obsidian **Settings** → **note2cms Publisher**.
+2. Set:
+   - **API URL**: Your FastAPI Cloud URL (e.g., `https://note2cms-xxxx.fastapicloud.dev`)
+   - **API Token**: The `API_TOKEN` set in FastAPI Cloud environment variables.
+3. Click **Test connection** — you should see a green success notification!
+4. Open any note and run **"Publish current note"** (or use **"Manage published posts"** to view restored posts).

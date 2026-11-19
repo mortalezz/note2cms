@@ -1,0 +1,62 @@
+{% set share_url = post_url | default(site_url ~ '/posts/' ~ slug ~ '/') %}
+{% if (not is_page) or prev_post or next_post or related_posts %}
+<aside class="n2c-post-extras" aria-label="Post actions and navigation">
+    {% if not is_page %}
+    <div class="n2c-share-bar" role="group" aria-label="{{ i18n.share_post if i18n else 'Share' }}">
+        <button
+            type="button"
+            class="n2c-share-btn n2c-share-native"
+            data-share-url="{{ share_url }}"
+            data-share-title="{{ title }}"
+            data-share-text="{{ excerpt }}"
+            onclick="(function(b){if(navigator.share){navigator.share({title:b.dataset.shareTitle,text:b.dataset.shareText,url:b.dataset.shareUrl}).catch(function(){});}else{var c=b.parentElement&&b.parentElement.querySelector('.n2c-share-copy');if(c)c.click();}})(this);"
+        >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <span>{{ i18n.share_post if i18n else "Share" }}</span>
+        </button>
+        <button
+            type="button"
+            class="n2c-share-btn n2c-share-copy"
+            data-copy-url="{{ share_url }}"
+            data-label-default="{{ i18n.copy_link if i18n else 'Copy link' }}"
+            data-label-copied="{{ i18n.copied_link if i18n else 'Copied ✓' }}"
+            onclick="(function(b){var u=b.dataset.copyUrl,l=b.querySelector('.n2c-copy-label'),ok=function(){if(l)l.textContent=b.dataset.labelCopied;b.classList.add('is-copied');clearTimeout(b._t);b._t=setTimeout(function(){if(l)l.textContent=b.dataset.labelDefault;b.classList.remove('is-copied');},2000);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(u).then(ok).catch(function(){var t=document.createElement('textarea');t.value=u;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}finally{document.body.removeChild(t);}});}else{var t=document.createElement('textarea');t.value=u;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();try{document.execCommand('copy');ok();}finally{document.body.removeChild(t);}}})(this);"
+        >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span class="n2c-copy-label" aria-live="polite">{{ i18n.copy_link if i18n else "Copy link" }}</span>
+        </button>
+    </div>
+    {% endif %}
+
+    {% if prev_post or next_post %}
+    <nav class="n2c-post-nav">
+        {% if prev_post %}
+        <a href="{{ prev_post.permalink }}" class="n2c-post-nav-item" rel="prev">
+            <span class="n2c-post-nav-label">← {{ i18n.previous_post if i18n else "Previous" }}</span>
+            <span class="n2c-post-nav-title">{{ prev_post.title }}</span>
+        </a>
+        {% endif %}
+        {% if next_post %}
+        <a href="{{ next_post.permalink }}" class="n2c-post-nav-item" rel="next">
+            <span class="n2c-post-nav-label">{{ i18n.next_post if i18n else "Next" }} →</span>
+            <span class="n2c-post-nav-title">{{ next_post.title }}</span>
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% if related_posts %}
+    <div class="n2c-related">
+        <h3>{{ i18n.related_posts if i18n else "Related posts" }}</h3>
+        <ul>
+            {% for rel in related_posts %}
+            <li>
+                <a href="{{ rel.permalink }}">{{ rel.title }}</a>
+                <span class="n2c-related-date">{{ rel.display_date }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</aside>
+{% endif %}

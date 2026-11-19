@@ -1,0 +1,37 @@
+{% if pinned_post and not tags_overview and not search_page %}
+{% if pagination and pagination.is_index and not active_tag %}
+<section class="n2c-pinned-card" aria-label="{{ i18n.pinned_label if i18n else 'Pinned' }}">
+    <div class="n2c-pinned-meta">
+        <span class="n2c-pinned-badge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+            {{ i18n.pinned_label if i18n else "Pinned" }}
+        </span>
+        <time datetime="{{ pinned_post.date }}">{{ pinned_post.display_date }}</time>
+        <span class="n2c-pinned-sep" aria-hidden="true">·</span>
+        <span>{{ pinned_post.reading_time }} {{ i18n.min_read if i18n else "min read" }}</span>
+    </div>
+    <h3 class="n2c-pinned-heading">
+        <a href="{{ pinned_post.permalink }}" class="n2c-pinned-title">{{ pinned_post.title }}</a>
+    </h3>
+    {% if pinned_post.excerpt %}
+    <p class="n2c-pinned-excerpt">{{ pinned_post.excerpt }}</p>
+    {% endif %}
+    {% if pinned_post.tags %}
+    <div class="n2c-pinned-tags">
+        {% for tag in pinned_post.tags %}
+        <a href="{{ site_url }}/posts/tags/{{ tag | urlencode }}/" class="n2c-pinned-tag">#{{ tag }}</a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% else %}
+<a href="{{ pinned_post.permalink }}" class="n2c-pinned-compact">
+    <span class="n2c-pinned-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+        {{ i18n.pinned_label if i18n else "Pinned" }}
+    </span>
+    <span class="n2c-pinned-compact-title">{{ pinned_post.title }}</span>
+    <span class="n2c-pinned-arrow" aria-hidden="true">→</span>
+</a>
+{% endif %}
+{% endif %}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -78,7 +78,8 @@
         }
 
         /* --- Divider --- */
-        .divider {
+        .divider,
+        .index-section {
             max-width: var(--max-width);
             margin: 0 auto;
             padding: 0 1.5rem;
@@ -205,9 +206,12 @@
             .post-item-row { flex-wrap: wrap; }
             .post-item-excerpt, .post-item-tags { padding-left: 0; }
             .index-header { padding: 3rem 1.2rem 1.5rem; }
+            .divider, .index-section { padding: 0 1.2rem; }
             .post-list { padding: 1rem 1.2rem; }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <div class="prompt-bar">
@@ -221,7 +225,18 @@
 
     <div class="divider"><hr></div>
 
-    {% if posts %}
+    <div class="index-section">
+        {% include "_shared/site_nav.html" %}
+    </div>
+        {% if tags_overview %}
+    <div class="index-section">
+        {% include "_shared/tags_overview.html" %}
+    </div>
+        {% elif search_page %}
+    <div class="index-section">
+        {% include "_shared/search_page.html" %}
+    </div>
+        {% elif posts %}
     <ul class="post-list">
         {% for post in posts %}
         <li class="post-item">
@@ -247,6 +262,11 @@
     <div class="empty-state">
         <p>$ ls posts/</p>
         <p>No posts found. <span class="cursor"></span></p>
+    </div>
+    {% endif %}
+    {% if pagination and pagination.total_pages > 1 %}
+    <div class="index-section">
+        {% include "_shared/pagination.html" %}
     </div>
     {% endif %}
 

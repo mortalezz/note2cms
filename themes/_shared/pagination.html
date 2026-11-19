@@ -1,0 +1,27 @@
+{% if pagination and pagination.total_pages > 1 %}
+<nav class="n2c-pagination" aria-label="Pagination">
+    {% if pagination.newer_url %}
+    <a href="{{ pagination.newer_url }}" class="n2c-page-nav" rel="prev">← {{ i18n.newer_posts if i18n else "Newer" }}</a>
+    {% else %}
+    <span class="n2c-page-nav n2c-page-disabled" aria-disabled="true">← {{ i18n.newer_posts if i18n else "Newer" }}</span>
+    {% endif %}
+
+    <div class="n2c-page-numbers">
+        {% for item in pagination.pages %}
+            {% if item.is_ellipsis %}
+            <span class="n2c-page-ellipsis">…</span>
+            {% elif item.is_current %}
+            <span class="n2c-page-current" aria-current="page">{{ item.number }}</span>
+            {% else %}
+            <a href="{{ item.url }}" class="n2c-page-link">{{ item.number }}</a>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    {% if pagination.older_url %}
+    <a href="{{ pagination.older_url }}" class="n2c-page-nav" rel="next">{{ i18n.older_posts if i18n else "Older" }} →</a>
+    {% else %}
+    <span class="n2c-page-nav n2c-page-disabled" aria-disabled="true">{{ i18n.older_posts if i18n else "Older" }} →</span>
+    {% endif %}
+</nav>
+{% endif %}

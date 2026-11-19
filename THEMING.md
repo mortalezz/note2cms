@@ -16,35 +16,42 @@ When building a theme, think about all three layers. The third one is what makes
 
 ## Available Themes
 
-note2cms ships with eight themes. Each has a distinct personality and a hidden trick.
+note2cms ships with **21 themes** across two families — 9 bespoke editorial/experimental themes and 12 Obsidian-inspired themes.
+
+### Editorial & Experimental Themes
 
 | Theme | Aesthetic | The Trick |
 |---|---|---|
 | `default` | Warm editorial serif, Newsreader on parchment | Dark mode via `prefers-color-scheme` — the first theme, the one that proves the concept |
 | `swiss` | Bauhaus geometry, Instrument Sans, primary colors, rigid grid | Numbered post counter in the index, red/blue/yellow geometric accents as fixed elements |
 | `brutalist` | IBM Plex Mono, 4px black borders, zero decoration | Binary hover inversion — entire index rows flip black-to-white instantly, no transition |
+| `brutalist2` | High-contrast brutalist mono with interactive accents | Title kinetic hover and subtle click ripple feedback |
 | `terminal` | Fira Code, phosphor green on dark, CRT scanlines | Headers prefixed with `##`, footer says `$ cd ../posts/`, scanline overlay via repeating gradient |
 | `vaporwave` | Outfit font, pink-to-purple gradients, floating radial glows | Cards lift on hover with gradient title reveal and purple box shadow |
 | `ink` | Cormorant Garamond, rice paper texture, vermillion accents | Brushstroke animation unfurls under the title on load; index titles get a pulsing ink dot on hover |
 | `darkroom` | Source Serif, amber safelight on deep black, vignette | Images "develop" like photographs — start dark with sepia, fade into full visibility; h2 bars glow on hover |
 | `manuscript` | Literata + Courier Prime, cream paper, red margin line | Section numbers appear in the margin like a reviewer's pencil marks; cursor changes to crosshair over links |
 
+### Obsidian-Inspired Themes
+
+`80s-Neon`, `abyssalobsidian`, `AnuPpuccin`, `arsmagna`, `autotape`, `Blue Topaz`, `GDCT`, `GDCT_Dark`, `Obsidian Nord`, `Obsidian-Ayu`, `Obsidian-Charcoal`, `Typewriter`
+
 ## Switching Themes
 
-1. In your Leapcell dashboard (or `.env` for self-hosted), change `ACTIVE_THEME`:
+1. In your FastAPI Cloud dashboard (`Environment Variables`, or `.env` for self-hosted), change `ACTIVE_THEME`:
    ```
    ACTIVE_THEME=darkroom
    ```
 
-2. **Redeploy** the service (Leapcell: "Save and Rebuild" button)
+2. **Deploy / restart** the service if needed (`fastapi deploy`).
 
-3. Rebuild all posts with the new theme:
+3. Rebuild all posts with the new theme in a single atomic commit:
    ```bash
-   curl -X POST https://YOUR_LEAPCELL_URL/rebuild \
+   curl -X POST https://YOUR_API_URL/rebuild \
      -H "Authorization: Bearer YOUR_TOKEN"
    ```
 
-4. Done. Every post is now rendered with the new theme.
+4. Done. Every post, index page, tag archive, and OG card is now rendered with the new theme.
 
 One environment variable. One curl. Whole blog redesigned.
 
@@ -77,6 +84,16 @@ Your post template receives these variables:
 | `excerpt` | string | `"First paragraph of the post..."` |
 | `site_title` | string | `"My Blog"` |
 | `site_url` | string | `"https://example.github.io/blog"` |
+| `site_lang` | string | `"en"` or `"ru"` |
+| `i18n` | dict | Localized UI strings |
+| `og_image` | string | Cover / first image / generated OG PNG URL |
+| `prev_post` / `next_post` | dict or None | Neighbor posts (`slug`, `title`, `permalink`) |
+| `related_posts` | list of dicts | Up to 3 posts sharing tags |
+| `series_info` | dict or None | Series TOC (`name`, `current_index`, `total`, `posts`) |
+| `nav_pages` | list of dicts | Static pages (`type: page`) |
+| `post_url` | string | Canonical post URL (`{{ site_url }}/posts/{{ slug }}/`) |
+| `is_page` | bool | True when `type: page` |
+| `pinned` | bool | True when `pinned: true` on a post |
 
 Minimal example:
 
@@ -109,8 +126,27 @@ Your index template receives these variables:
 | Variable | Type | Description |
 |---|---|---|
 | `posts` | list of dicts | All posts, newest first |
+| `pinned_post` | dict or None | Active pinned post (`pinned: true`, newest wins) |
 | `site_title` | string | Your blog name |
 | `site_url` | string | Your blog URL |
+| `site_lang` | string | `"en"` or `"ru"` |
+| `i18n` | dict | Localized UI strings |
+| `pagination` | PageSlice or None | Pagination metadata (`current` via `page_number`, `total_pages`, `newer_url`, `older_url`, `pages`) |
+| `active_tag` | string or None | Set on `/posts/tags/{tag}/` pages |
+| `tags_overview` | bool | True on `/posts/tags/` overview |
+| `all_tags` | dict | `{tag: count}` mapping when `tags_overview` is True |
+| `search_page` | bool | True on `/posts/search/` |
+| `nav_pages` | list of dicts | Static pages (`type: page`) |
+
+### Shared Partials (`themes/_shared/`)
+
+All themes can include reusable zero-JS components from `themes/_shared/`:
+- `_shared/components.css` — pure-CSS scroll-snap carousel, `:target` lightbox, pagination, tag cloud, series TOC, prev/next cards (inherits theme variables automatically)
+- `_shared/head_meta.html` — RSS/Atom links, `og:image`, `twitter:card`, `rel="prev/next"`
+- `_shared/site_nav.html` — navigation bar, tag filter banner, and pinned post slot (`_shared/pinned_post.html`)
+- `_shared/pagination.html` — page navigation bar
+- `_shared/series_box.html` & `_shared/post_extras.html` — series TOC, native share + copy-link bar, prev/next, related posts
+- `_shared/tags_overview.html` & `_shared/search_page.html` — tags overview and optional static search page
 
 Each post in the `posts` list contains:
 

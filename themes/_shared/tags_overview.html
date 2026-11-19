@@ -1,0 +1,15 @@
+<section class="n2c-tags-section" aria-label="{{ i18n.all_tags if i18n else 'All tags' }}">
+    <h2>{{ i18n.all_tags if i18n else "All tags" }}</h2>
+    {% if all_tags %}
+    <div class="n2c-tags-cloud">
+        {% for tag_name, tag_count in all_tags.items() %}
+        <a href="{{ site_url }}/posts/tags/{{ tag_name | urlencode }}/" class="n2c-tag-pill">
+            <span>#{{ tag_name }}</span>
+            <span class="n2c-tag-count">{{ tag_count }}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>{{ i18n.no_posts if i18n else "No posts yet." }}</p>
+    {% endif %}
+</section>

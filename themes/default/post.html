@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +9,6 @@
     <meta property="og:description" content="{{ excerpt }}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ site_url }}/posts/{{ slug }}/">
-    <meta name="twitter:card" content="summary">
     <link rel="canonical" href="{{ site_url }}/posts/{{ slug }}/">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -290,6 +289,8 @@
             .post-footer { padding: 2rem 1.2rem 4rem; }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <article>
@@ -297,26 +298,28 @@
             <div class="post-meta">
                 <time datetime="{{ date_iso }}">{{ date }}</time>
                 <span class="sep"></span>
-                <span>{{ reading_time }} min read</span>
+                <span>{{ reading_time }} {{ i18n.min_read if i18n else "min read" }}</span>
             </div>
             <h1 class="post-title">{{ title }}</h1>
             {% if tags %}
             <div class="post-tags">
                 {% for tag in tags %}
-                <span>{{ tag }}</span>
+                <a href="{{ site_url }}/posts/tags/{{ tag | urlencode }}/" class="n2c-tag-link"><span>{{ tag }}</span></a>
                 {% endfor %}
             </div>
             {% endif %}
         </header>
 
         <div class="post-content">
-            {{ content }}
+            {% include "_shared/series_box.html" %}
+{{ content }}
+{% include "_shared/post_extras.html" %}
         </div>
     </article>
 
     <footer class="post-footer">
         <a href="{{ site_url }}/posts/">
-            <span class="arrow">←</span> All posts
+            <span class="arrow">←</span> {{ i18n.all_posts if i18n else "All posts" }}
         </a>
     </footer>
 </body>

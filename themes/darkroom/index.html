@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,7 +67,8 @@
             color: var(--text-dim);
         }
 
-        .divider {
+        .divider,
+        .index-section {
             max-width: var(--max-width);
             margin: 0 auto;
             padding: 0 1.5rem;
@@ -199,10 +200,13 @@
         @media (max-width: 640px) {
             html { font-size: 15px; }
             .index-header { padding: 3.5rem 1.2rem 2rem; }
+            .divider, .index-section { padding: 0 1.2rem; }
             .post-list { padding: 0.5rem 1.2rem 3rem; }
             .post-item-link { padding-left: 1.5rem; }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <div class="index-wrapper">
@@ -215,14 +219,25 @@
 
         <div class="divider"><hr></div>
 
-        {% if posts %}
+        <div class="index-section">
+            {% include "_shared/site_nav.html" %}
+        </div>
+        {% if tags_overview %}
+        <div class="index-section">
+            {% include "_shared/tags_overview.html" %}
+        </div>
+        {% elif search_page %}
+        <div class="index-section">
+            {% include "_shared/search_page.html" %}
+        </div>
+        {% elif posts %}
         <ul class="post-list">
             {% for post in posts %}
             <li class="post-item">
                 <a href="{{ post.permalink }}" class="post-item-link">
                     <div class="post-item-meta">
                         <time datetime="{{ post.date }}">{{ post.display_date }}</time>
-                        <span>{{ post.reading_time }} min</span>
+                        <span>{{ post.reading_time }} {{ i18n.min_short if i18n else "min" }}</span>
                     </div>
                     <h2 class="post-item-title">{{ post.title }}</h2>
                     <p class="post-item-excerpt">{{ post.excerpt }}</p>
@@ -240,6 +255,11 @@
         {% else %}
         <div class="empty-state">
             <p>Darkroom empty. No prints developing.</p>
+        </div>
+        {% endif %}
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="index-section">
+            {% include "_shared/pagination.html" %}
         </div>
         {% endif %}
 

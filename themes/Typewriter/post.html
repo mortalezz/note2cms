@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,20 +53,24 @@
         article code { background: #f7f2e8; border: 1px solid var(--rule); padding: 1px 6px; }
         .back { display: inline-block; margin-top: 24px; color: var(--accent); text-decoration: none; }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <main class="wrap">
-        <div class="meta">{{ date }} • {{ reading_time }} min read</div>
+        <div class="meta">{{ date }} • {{ reading_time }} {{ i18n.min_read if i18n else "min read" }}</div>
         <h1>{{ title }}</h1>
         {% if tags %}
         <div class="tags">
             {% for tag in tags %}
-            <span>{{ tag }}</span>
+            <a href="{{ site_url }}/posts/tags/{{ tag | urlencode }}/" class="n2c-tag-link"><span>{{ tag }}</span></a>
             {% endfor %}
         </div>
         {% endif %}
-        <article>{{ content }}</article>
-        <a class="back" href="{{ site_url }}/posts/">← All posts</a>
+        <article>{% include "_shared/series_box.html" %}
+{{ content }}
+{% include "_shared/post_extras.html" %}</article>
+        <a class="back" href="{{ site_url }}/posts/">← {{ i18n.all_posts if i18n else "All posts" }}</a>
     </main>
 </body>
 </html>

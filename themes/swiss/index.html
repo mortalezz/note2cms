@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ site_lang | default('en') }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,7 +105,8 @@
         }
 
         /* --- Divider --- */
-        .index-divider {
+        .index-divider,
+        .index-section {
             max-width: var(--col-width);
             margin: 0 auto;
             padding: 0 calc(var(--grid-unit) * 3);
@@ -291,7 +292,8 @@
                 margin-top: 0;
             }
 
-            .index-divider {
+            .index-divider,
+            .index-section {
                 padding: 0 calc(var(--grid-unit) * 2);
             }
 
@@ -300,6 +302,8 @@
             }
         }
     </style>
+    {% include "_shared/head_meta.html" %}
+    <style>{% include "_shared/components.css" %}</style>
 </head>
 <body>
     <!-- Bauhaus geometric elements -->
@@ -315,14 +319,25 @@
 
         <div class="index-divider"><hr></div>
 
-        {% if posts %}
+        <div class="index-section">
+            {% include "_shared/site_nav.html" %}
+        </div>
+        {% if tags_overview %}
+        <div class="index-section">
+            {% include "_shared/tags_overview.html" %}
+        </div>
+        {% elif search_page %}
+        <div class="index-section">
+            {% include "_shared/search_page.html" %}
+        </div>
+        {% elif posts %}
         <ol class="post-list">
             {% for post in posts %}
             <li class="post-item">
                 <a href="{{ post.permalink }}" class="post-item-link">
                     <div class="post-item-date-col">
                         <time datetime="{{ post.date }}">{{ post.display_date }}</time>
-                        <span class="reading-time">{{ post.reading_time }} min</span>
+                        <span class="reading-time">{{ post.reading_time }} {{ i18n.min_short if i18n else "min" }}</span>
                     </div>
                     <div class="post-item-content">
                         <h2 class="post-item-title">{{ post.title }}</h2>
@@ -341,9 +356,14 @@
         </ol>
         {% else %}
         <div class="empty-state">
-            <p>No posts yet.</p>
-            <p>Push some Markdown to get started.</p>
+            <p>{{ i18n.no_posts if i18n else "No posts yet." }}</p>
+            <p>{{ i18n.push_hint if i18n else "Push some Markdown to get started." }}</p>
             <code>curl -X POST /publish</code>
+        </div>
+        {% endif %}
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="index-section">
+            {% include "_shared/pagination.html" %}
         </div>
         {% endif %}
 
